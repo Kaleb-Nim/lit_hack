@@ -1,0 +1,574 @@
+/*
+ * Route-specific styles for /review/[docId] and /review/[docId]/final.
+ * Ported from redline-review/styles.css. Tokens, .btn*, .chip, .card,
+ * .eyebrow, .ph*, .steps*, .shell*, .scrim and .dialog live in globals.css.
+ */
+
+[contenteditable]:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ── Main / panes ──────────────────────────────────────────────── */
+.review {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+}
+.compare {
+  flex: 1 1 640px;
+  min-width: 540px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.final {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Pre-hydration skeleton ────────────────────────────────────── */
+.skeleton {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--canvas);
+  padding: 20px 18px;
+}
+.skeleton__sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgba(22, 32, 44, 0.14);
+  padding: 40px 28px;
+  display: grid;
+  gap: 14px;
+}
+.skeleton__line {
+  height: 12px;
+  background: var(--rule-row);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+.skeleton__line--short {
+  width: 38%;
+}
+.skeleton__line--mid {
+  width: 72%;
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ── Legend ────────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 9px 18px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+  flex-wrap: wrap;
+}
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.legend__label {
+  font-size: 11.5px;
+  color: var(--muted-strong);
+  white-space: nowrap;
+}
+.legend__swatch {
+  width: 13px;
+  height: 13px;
+  display: inline-block;
+}
+.legend__swatch--struck {
+  background: rgba(155, 34, 38, 0.13);
+  border-bottom: 2px solid var(--crimson);
+}
+.legend__swatch--inserted {
+  background: rgba(20, 101, 79, 0.12);
+  border-bottom: 2px solid var(--green);
+}
+.legend__swatch--bar {
+  width: 3px;
+  height: 14px;
+  background: var(--gold);
+}
+.legend__hint {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Column headings ───────────────────────────────────────────── */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 14px;
+  padding: 0 18px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+}
+.columns__cell {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 10px 0;
+}
+.columns__title {
+  font: 700 14px var(--serif-display);
+}
+.columns__note {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ── Compare scroll region ─────────────────────────────────────── */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--canvas);
+  padding: 20px 18px 44px;
+}
+.sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  box-shadow: 0 1px 3px rgba(22, 32, 44, 0.14);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 14px;
+  align-items: stretch;
+  /* Two paper columns with the canvas showing through the gutter. */
+  background: linear-gradient(
+    90deg,
+    var(--paper) 0 calc(50% - 7px),
+    var(--canvas) calc(50% - 7px) calc(50% + 7px),
+    var(--paper) calc(50% + 7px) 100%
+  );
+}
+
+.cell {
+  padding: 0 14px 20px;
+}
+.cell--kicker {
+  padding: 32px 14px 10px;
+}
+.cell--heading {
+  padding: 0 14px 10px;
+}
+.cell--heading-first {
+  padding: 16px 14px 10px;
+}
+.cell--clause-with-actions {
+  padding: 0 14px 6px;
+}
+.cell--actions-last {
+  padding-bottom: 44px;
+}
+
+.doc__kicker {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.doc__heading {
+  margin: 0;
+  font: 600 15px var(--serif-display);
+}
+
+/* ── Clause rows ───────────────────────────────────────────────── */
+.clause {
+  display: flex;
+  gap: 10px;
+}
+.clause__bar {
+  flex: none;
+  width: 3px;
+}
+.clause__number {
+  flex: none;
+  width: 22px;
+  font-size: 11px;
+  color: var(--muted-soft);
+  padding-top: 4px;
+}
+.clause__text {
+  margin: 0;
+  font-family: var(--serif-body);
+  font-size: 14px;
+  line-height: 1.85;
+  text-wrap: pretty;
+}
+
+.struck {
+  background: rgba(155, 34, 38, 0.13);
+  color: var(--crimson-ink);
+  text-decoration: line-through;
+}
+/* Where the revised wording lands in the original column. */
+.caret {
+  display: inline-block;
+  width: 3px;
+  height: 15px;
+  background: var(--gold);
+  vertical-align: -3px;
+  margin: 0 3px;
+}
+
+.insertion {
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  cursor: text;
+}
+
+/* ── Per-clause decision row ───────────────────────────────────── */
+.decision {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+/* ── Side panel ────────────────────────────────────────────────── */
+.panel {
+  flex: 0 0 300px;
+  min-width: 268px;
+  background: var(--cream);
+  border-left: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.panel__head {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+}
+.panel__title {
+  font: 600 16px/1.3 var(--serif-display);
+  text-wrap: pretty;
+  margin-top: 4px;
+}
+.panel__rationale {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted-strong);
+  text-wrap: pretty;
+}
+.panel__body {
+  padding: 14px 18px 2px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.panel__textarea {
+  width: 100%;
+  flex: 1;
+  min-height: 64px;
+  margin-top: 7px;
+  box-sizing: border-box;
+  resize: none;
+  font-family: var(--serif-body);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 11px 12px;
+}
+.panel__hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.panel__foot {
+  padding: 12px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: none;
+}
+.panel__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.panel__statusLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.panel__buttons {
+  display: flex;
+  gap: 10px;
+}
+.btn--next-panel {
+  text-align: left;
+  padding: 11px 14px;
+}
+
+/* ── Final document ────────────────────────────────────────────── */
+.finalBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 18px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+  flex-wrap: wrap;
+}
+.finalBar__title {
+  font: 700 14px var(--serif-display);
+}
+.finalBar__meta {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.finalBar__note {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--muted-strong);
+}
+.chip--signed {
+  background: var(--green);
+  color: var(--cream);
+}
+.finalScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--canvas);
+  padding: 26px 18px 54px;
+}
+.paper {
+  max-width: 760px;
+  margin: 0 auto;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(22, 32, 44, 0.16);
+  padding: 64px 76px 80px;
+}
+.paper__kicker {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.paper__title {
+  margin: 0 0 6px;
+  font: 700 24px var(--serif-display);
+}
+.paper__stamp {
+  margin: 0 0 34px;
+  font-family: var(--serif-body);
+  font-size: 13px;
+  color: var(--muted);
+}
+.paper__heading {
+  margin: 0 0 14px;
+  font: 600 16px var(--serif-display);
+}
+.paper__clause {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.paper__clause--last {
+  margin-bottom: 30px;
+}
+.paper__number {
+  flex: none;
+  width: 30px;
+  font-family: var(--serif-body);
+  font-size: 13px;
+  color: var(--muted-serif);
+  padding-top: 3px;
+}
+.paper__text {
+  margin: 0;
+  font-family: var(--serif-body);
+  font-size: 14.5px;
+  line-height: 1.95;
+  text-wrap: pretty;
+}
+.paper__text--open {
+  color: var(--muted-strong);
+}
+.signatures {
+  border-top: 1px solid var(--rule-paper);
+  padding-top: 26px;
+  margin-top: 10px;
+  display: flex;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+.signature {
+  min-width: 200px;
+}
+.signature__line {
+  height: 38px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4px;
+  font: 600 17px var(--serif-display);
+  color: var(--navy);
+}
+.signature__label {
+  font-family: var(--serif-body);
+  font-size: 12.5px;
+  color: var(--muted-strong);
+}
+.signature__date {
+  font-family: var(--serif-body);
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Sign / download / next-step block under the paper ─────────── */
+.signBlock {
+  max-width: 760px;
+  margin: 18px auto 0;
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  padding: 18px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.signBlock__title {
+  font: 600 15px var(--serif-display);
+}
+.signBlock__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.signBlock__input {
+  font: 15px var(--serif-body);
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  min-width: 220px;
+}
+.signBlock__input:disabled {
+  color: var(--muted);
+  background: var(--rule-row);
+}
+.signBlock__hint {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.signBlock__hint a {
+  text-decoration: underline;
+}
+.signBlock__note {
+  font-size: 12px;
+  color: var(--crimson-ink);
+}
+.signBlock__rule {
+  height: 1px;
+  background: var(--rule);
+  margin: 2px 0;
+}
+.tally {
+  max-width: 760px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tally__line {
+  font-size: 11.5px;
+  color: var(--muted-strong);
+}
+.tally__remaining {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.tally__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 20px;
+  background: var(--cream);
+  border-top: 1px solid var(--rule);
+  flex-wrap: wrap;
+  flex: none;
+}
+.footer__meta {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.footer__state {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--muted-strong);
+}
+
+/* ── Not found ─────────────────────────────────────────────────── */
+.nf {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+  background: var(--canvas);
+}
+.nf__card {
+  max-width: 520px;
+  padding: 36px 40px;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(22, 32, 44, 0.16);
+}
+.nf__title {
+  margin: 8px 0 10px;
+  font: 700 24px var(--serif-display);
+}
+.nf__body {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+.nf__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

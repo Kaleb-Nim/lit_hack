@@ -1,26 +1,391 @@
 @import "tailwindcss";
 
+/* ── Pearson design tokens (shared by every route) ─────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0f2033;
+  --navy-hover: #1b3550;
+  --ink: #16202c;
+  --gold: #b0873f;
+  --gold-ink: #8a6a2f;
+  --gold-hover: #c69a4c;
+  --gold-active: #96702f;
+  --green: #14654f;
+  --green-hover: #0f5240;
+  --crimson: #9b2226;
+  --crimson-ink: #7d1d21;
+
+  --page: #eae6df;
+  --cream: #f7f4ee;
+  --canvas: #e3ded5;
+  --paper: #ffffff;
+  --rule: #d8d2c7;
+  --rule-paper: #ded8cd;
+  --rule-row: #efeae1;
+  --line: #c3bcae;
+
+  --muted: #6b6459;
+  --muted-strong: #5c5449;
+  --muted-soft: #a8a294;
+  --muted-serif: #8b8577;
+
+  --sans: var(--font-source-sans), "Source Sans 3", system-ui, sans-serif;
+  --serif-display: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --serif-body: var(--font-lora), Lora, Georgia, serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Base ──────────────────────────────────────────────────────── */
+html,
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  color-scheme: light;
+}
+a {
+  color: var(--gold-ink);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--gold);
+}
+::selection {
+  background: rgba(176, 135, 63, 0.28);
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Shared primitives ─────────────────────────────────────────── */
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.chip {
+  font: 600 9.5px var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.card {
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgba(22, 32, 44, 0.14);
+}
+
+.btn {
+  font: 600 13px var(--sans);
+  border: 0;
+  cursor: pointer;
+  padding: 10px 15px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.btn--sm {
+  font-size: 12px;
+  padding: 6px 13px;
+}
+.btn--block {
+  flex: 1;
+  padding: 11px 14px;
+  justify-content: center;
+}
+.btn--gold {
+  color: var(--navy);
+  background: var(--gold);
+}
+.btn--gold:hover:not(:disabled) {
+  background: var(--gold-hover);
+}
+.btn--gold:active:not(:disabled) {
+  background: var(--gold-active);
+}
+.btn--gold-outline {
+  color: var(--navy);
+  background: transparent;
+  border: 1px solid var(--gold);
+  padding: 9px 14px;
+}
+.btn--gold-outline:hover:not(:disabled) {
+  background: rgba(176, 135, 63, 0.12);
+}
+.btn--navy {
+  color: var(--cream);
+  background: var(--navy);
+  padding: 9px 15px;
+}
+.btn--navy:hover:not(:disabled) {
+  background: var(--navy-hover);
+}
+.btn--outline-light {
+  color: var(--cream);
+  background: transparent;
+  border: 1px solid rgba(247, 244, 238, 0.4);
+  padding: 9px 14px;
+}
+.btn--outline-light:hover:not(:disabled) {
+  background: rgba(247, 244, 238, 0.1);
+}
+.btn--accept {
+  color: var(--cream);
+  background: var(--green);
+}
+.btn--accept:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+.btn--ghost {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: #f2eee6;
+}
+
+/* ── Shared header (components/pearson-header.tsx) ─────────────── */
+.ph {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 14px 22px;
+  background: var(--navy);
+  color: var(--cream);
+  flex: none;
+}
+.ph__brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  flex: none;
+  white-space: nowrap;
+  color: var(--cream);
+}
+.ph__brand:hover {
+  color: var(--cream);
+}
+.ph__name {
+  font: 700 17px var(--serif-display);
+  letter-spacing: 0.01em;
+}
+.ph__kicker {
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ph__divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(247, 244, 238, 0.22);
+  flex: none;
+}
+.ph__doc {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+.ph__title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  flex: none;
+}
+.ph__meta {
+  font-size: 11.5px;
+  color: rgba(247, 244, 238, 0.68);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ph__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+.ph__position {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(247, 244, 238, 0.7);
+  white-space: nowrap;
+}
+
+/* ── Step indicator (components/flow-steps.tsx) ────────────────── */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 22px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  flex: none;
+  overflow-x: auto;
+}
+.steps__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 11px var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.steps__item[aria-current="step"] {
+  color: var(--navy);
+}
+.steps__num {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--muted);
+}
+.steps__item[aria-current="step"] .steps__num,
+.steps__item[data-done="true"] .steps__num {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+}
+.steps__sep {
+  color: var(--line);
+}
+
+/* ── App shell ─────────────────────────────────────────────────── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+.shell__main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Dialog scrim ──────────────────────────────────────────────── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 32, 51, 0.55);
+  box-sizing: border-box;
+  z-index: 50;
+}
+.dialog {
+  width: min(540px, 100%);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  box-shadow: 0 16px 44px rgba(15, 32, 51, 0.32);
+}
+
+/* ── Status pages (app/error.tsx, not-found.tsx, loading.tsx) ─── */
+.status {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: var(--canvas);
+  padding: 48px 20px;
+  display: grid;
+  place-items: start center;
+}
+.status__card {
+  width: min(560px, 100%);
+  padding: 30px 36px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.status__card .eyebrow {
+  margin-bottom: 2px;
+}
+.status__title {
+  margin: 0;
+  font-family: var(--serif-display);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+.status__body {
+  margin: 0;
+  font-family: var(--serif-body);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted-strong);
+  text-wrap: pretty;
+}
+.status__detail {
+  margin: 0;
+  font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 10px 12px;
+  background: var(--cream);
+  border: 1px solid var(--rule-paper);
+}
+.status__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.status__pulse {
+  height: 3px;
+  background: var(--rule-paper);
+  overflow: hidden;
+}
+.status__pulse::after {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--gold);
+  animation: status-slide 1.2s ease-in-out infinite;
+}
+@keyframes status-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
   }
 }
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  .status__pulse::after {
+    animation: none;
+    width: 100%;
+  }
 }
