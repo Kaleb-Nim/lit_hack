@@ -1,11 +1,12 @@
 "use client";
 
-import { Activity, ArrowRight, Bell, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, Scale, Search, Settings, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
+import { Activity, ArrowRight, Bell, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, Search, Settings, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type NodeKind = "regulation" | "obligation" | "document" | "workflow";
 type AssetStatus = "Outdated" | "Needs Review" | "Still Valid" | "Validated";
 type GraphNode = { id: string; label: string; sublabel: string; kind: NodeKind; x: number; y: number; affected?: boolean; section?: string; status?: AssetStatus; version?: string };
+type R2Contract = { id: string; key: string; name: string; section: string; dependency: string; currentAssumption: string; updatedRequirement: string; reason: string; status: AssetStatus; size: number; lastModified: string; downloadUrl: string };
 
 const nodes: GraphNode[] = [
   { id: "act", label: "Employment Act", sublabel: "External source", kind: "regulation", x: 8, y: 18, version: "2022 consolidated" },
@@ -48,6 +49,10 @@ export default function Home() {
   const [finishedTime, setFinishedTime] = useState<number | null>(null);
   const [decision, setDecision] = useState<string | null>(null);
   const [applySimilar, setApplySimilar] = useState(false);
+  const [r2Contracts, setR2Contracts] = useState<R2Contract[]>([]);
+  const [r2State, setR2State] = useState<"loading" | "connected" | "unconfigured" | "error">("loading");
+  const [r2Message, setR2Message] = useState("");
+  const [syncNonce, setSyncNonce] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,12 +61,41 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [timerRunning]);
 
-  const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[2];
-  const reviewAsset = nodes.find((node) => node.id === reviewAssetId);
+  useEffect(() => {
+    const controller = new AbortController();
+    setR2State("loading");
+    fetch("/api/contracts", { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json() as { contracts?: R2Contract[]; error?: string };
+        if (!response.ok) throw new Error(`${response.status}:${data.error ?? "Unable to load contracts"}`);
+        setR2Contracts(data.contracts ?? []);
+        setR2State("connected");
+        setR2Message(`${data.contracts?.length ?? 0} contracts synced from R2`);
+        setAssetStatuses((current) => {
+          const next = { ...current };
+          (data.contracts ?? []).slice(0, impactedAssets.length).forEach((contract, index) => { next[impactedAssets[index]] = contract.status; });
+          return next;
+        });
+      })
+      .catch((error: Error) => {
+        if (error.name === "AbortError") return;
+        setR2State(error.message.startsWith("503:") ? "unconfigured" : "error");
+        setR2Message(error.message.replace(/^\d+:/, ""));
+      });
+    return () => controller.abort();
+  }, [syncNonce]);
+
   const resolvedCount = impactedAssets.filter((id) => ["Still Valid", "Validated"].includes(assetStatuses[id])).length;
   const validatedTotal = 24 + Object.values(assetStatuses).filter((s) => s === "Validated").length;
   const resilience = Math.round((validatedTotal / 30) * 100);
-  const graphNodes = useMemo(() => nodes.map((node) => ({ ...node, status: assetStatuses[node.id] ?? node.status })), [assetStatuses]);
+  const graphNodes = useMemo(() => nodes.map((node) => {
+    const slot = impactedAssets.indexOf(node.id);
+    const contract = slot >= 0 ? r2Contracts[slot] : undefined;
+    return { ...node, label: contract?.name ?? node.label, sublabel: contract?.section ?? node.sublabel, section: contract?.section ?? node.section, status: assetStatuses[node.id] ?? contract?.status ?? node.status };
+  }), [assetStatuses, r2Contracts]);
+  const selectedNode = graphNodes.find((node) => node.id === selectedId) ?? graphNodes[2];
+  const reviewAsset = graphNodes.find((node) => node.id === reviewAssetId);
+  const displayedAssetIds = r2State === "connected" ? impactedAssets.slice(0, Math.min(r2Contracts.length, impactedAssets.length)) : impactedAssets;
 
   function traceImpact() { setTraceActive(true); setSelectedId("amendment"); graphRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
   function openReview(id: string) { setReviewAssetId(id); setManualEdit(false); setDecision(null); setTimerSeconds(0); setTimerRunning(false); setFinishedTime(null); setApplySimilar(false); }
@@ -102,11 +136,11 @@ export default function Home() {
       <section className="content">
         <div className="page-heading">
           <div><div className="eyebrow"><Activity size={13} /> LIVE DEPENDENCY MODEL</div><h1>Regulatory resilience</h1><p>Trace legal changes through every policy, contract and operational rule they govern.</p></div>
-          <div className="sync-state"><span className="live-dot" />Knowledge graph current <small>Synced 4 min ago</small></div>
+          <button className={`sync-state ${r2State}`} onClick={() => setSyncNonce((value) => value + 1)} title={r2Message}><span className="live-dot" /><Cloud size={13} />{r2State === "connected" ? "R2 contracts connected" : r2State === "loading" ? "Syncing R2 contracts" : "R2 setup required"}<small>{r2State === "connected" ? `${r2Contracts.length} objects` : "View setup"}</small><RefreshCw size={12} /></button>
         </div>
 
         <div className="metric-grid">
-          {[["Active regulatory changes", "1", "change", "amber"], ["Impacted assets", "5", "in scope", "slate"], ["Pending human review", Object.values(assetStatuses).filter((s) => s === "Needs Review" || s === "Outdated").length.toString(), "queue", "violet"], ["Stale dependencies", Object.values(assetStatuses).filter((s) => s === "Outdated").length.toString(), "requires action", "red"], ["Validated dependencies", validatedTotal.toString(), "current", "green"]].map(([label, value, foot, tone]) => (
+          {[["Active regulatory changes", "1", "change", "amber"], ["Impacted assets", r2State === "connected" ? r2Contracts.length.toString() : "5", r2State === "connected" ? "from R2" : "demo data", "slate"], ["Pending human review", Object.values(assetStatuses).filter((s) => s === "Needs Review" || s === "Outdated").length.toString(), "queue", "violet"], ["Stale dependencies", Object.values(assetStatuses).filter((s) => s === "Outdated").length.toString(), "requires action", "red"], ["Validated dependencies", validatedTotal.toString(), "current", "green"]].map(([label, value, foot, tone]) => (
             <div className="metric-card" key={label}><span className={`metric-icon ${tone}`}><Network size={15} /></span><div><small>{label}</small><strong>{value}</strong><em>{foot}</em></div></div>
           ))}
           <div className="metric-card resilience-card"><div className="ring" style={{ "--progress": `${resilience * 3.6}deg` } as React.CSSProperties}><span>{resilience}%</span></div><div><small>Regulatory resilience</small><strong>{resilience}%</strong><em>{validatedTotal} of 30 dependencies current</em></div></div>
@@ -153,10 +187,11 @@ export default function Home() {
           </section>
 
           <aside className="panel impact-panel">
-            <div className="section-title"><div><Activity size={15} />BLAST RADIUS</div><span>{traceActive ? "TRACED" : "READY"}</span></div>
-            <div className="impact-total"><strong>5</strong><div><span>dependent assets</span><small>via Minimum Notice Period</small></div></div>
+            <div className="section-title"><div><Activity size={15} />BLAST RADIUS</div><span>{r2State === "connected" ? "R2 LIVE" : traceActive ? "TRACED" : "DEMO"}</span></div>
+            <div className="impact-total"><strong>{r2State === "connected" ? r2Contracts.length : 5}</strong><div><span>dependent assets</span><small>via Minimum Notice Period</small></div></div>
             <div className="impact-breakdown"><span><i className="red-dot" />{Object.values(assetStatuses).filter((s) => s === "Outdated").length} Outdated</span><span><i className="amber-dot" />{Object.values(assetStatuses).filter((s) => s === "Needs Review").length} Needs Review</span><span><i className="green-dot" />{Object.values(assetStatuses).filter((s) => ["Still Valid", "Validated"].includes(s)).length} Valid</span></div>
-            <div className="asset-list">{impactedAssets.map((id) => { const asset = nodes.find((node) => node.id === id)!; const status = assetStatuses[id]; return <article className={`asset-item ${selectedId === id ? "active" : ""}`} key={id} onClick={() => setSelectedId(id)}><div className="asset-head"><div className={`asset-icon ${asset.kind}`}><FileText size={14} /></div><div><strong>{asset.label}</strong><small>{asset.section}</small></div><StatusPill status={status} /></div>{(status === "Outdated" || status === "Needs Review") && <><div className="dependency-row"><span>Current assumption <b>7 days</b></span><ArrowRight size={12} /><span>Requirement <b>14 days</b></span></div><p>{id === "contract" ? "This clause directly encodes the previous statutory minimum." : id === "checklist" ? "This step instructs HR to apply the former minimum." : id === "rule" ? "The automated rule tests against the former threshold." : "The advice may restate an outdated threshold."}</p><button className="review-button" onClick={(event) => { event.stopPropagation(); openReview(id); }}>Review change <ChevronRight size={14} /></button></>}{status === "Validated" && <div className="revalidated-line"><CheckCircle2 size={13} />Dependency revalidated against Regulation v2</div>}</article>; })}</div>
+            {(r2State !== "connected" || r2Contracts.length === 0) && <div className="r2-notice"><Cloud size={15} /><div><strong>{r2State === "loading" ? "Connecting to contract storage…" : r2State === "connected" ? "No contracts found under the configured prefix" : "Showing demo contracts"}</strong><p>{r2Message || "Add the read-only R2 credentials to .env.local, then refresh."}</p></div></div>}
+            <div className="asset-list">{displayedAssetIds.map((id, index) => { const asset = graphNodes.find((node) => node.id === id)!; const contract = r2Contracts[index]; const status = assetStatuses[id]; const current = contract?.currentAssumption ?? "7 days"; const updated = contract?.updatedRequirement ?? "14 days"; const reason = contract?.reason ?? (id === "contract" ? "This clause directly encodes the previous statutory minimum." : id === "checklist" ? "This step instructs HR to apply the former minimum." : id === "rule" ? "The automated rule tests against the former threshold." : "The advice may restate an outdated threshold."); return <article className={`asset-item ${selectedId === id ? "active" : ""}`} key={id} onClick={() => setSelectedId(id)}><div className="asset-head"><div className={`asset-icon ${asset.kind}`}><FileText size={14} /></div><div><strong>{asset.label}</strong><small>{asset.section}</small></div><StatusPill status={status} /></div>{contract && <a className="contract-link" href={contract.downloadUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><ExternalLink size={11} />Open source contract · {(contract.size / 1024).toFixed(0)} KB</a>}{(status === "Outdated" || status === "Needs Review") && <><div className="dependency-row"><span>Current assumption <b>{current}</b></span><ArrowRight size={12} /><span>Requirement <b>{updated}</b></span></div><p>{reason}</p><button className="review-button" onClick={(event) => { event.stopPropagation(); openReview(id); }}>Review change <ChevronRight size={14} /></button></>}{status === "Validated" && <div className="revalidated-line"><CheckCircle2 size={13} />Dependency revalidated against Regulation v2</div>}</article>; })}</div>
             <div className="progress-card"><div><span>Regulatory change remediation</span><strong>{resolvedCount} / 5 assets resolved</strong></div><div className="progress-track"><span style={{ width: `${resolvedCount * 20}%` }} /></div><small>{resolvedCount * 20}% complete</small></div>
           </aside>
         </div>

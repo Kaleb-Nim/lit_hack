@@ -1698,6 +1698,9 @@ button {
 .page-heading p { font-size: 11px; }
 .eyebrow { color: #77746e; }
 .sync-state { background: #fbfbf9; border-color: #deddd7; border-radius: 5px; }
+.sync-state { cursor: pointer; font-family: inherit; }
+.sync-state.unconfigured .live-dot, .sync-state.error .live-dot { background: #bd7a13; box-shadow: 0 0 0 3px #fff1d9; }
+.sync-state.loading svg:last-child { animation: r2-spin 1s linear infinite; }
 .panel, .metric-card { background: var(--panel); border-color: #deddd7; box-shadow: 0 1px 1px rgb(24 23 20 / 3%); }
 .panel { border-radius: 11px; }
 .metric-card { border-radius: 8px; }
@@ -1715,6 +1718,13 @@ button {
 .review-topbar { background: #11110f; }
 .review-doc-icon { background: #2d2c28; color: #e7e3d9; }
 .timer-controls button:first-child { background: #171715; border-color: #171715; }
+.r2-notice { display: flex; gap: 8px; margin: 9px 12px 2px; padding: 8px; border: 1px solid #e3d8c5; border-radius: 5px; background: #fffaf1; color: #90611c; }
+.r2-notice div { display: grid; gap: 2px; }
+.r2-notice strong { font-size: 8px; }
+.r2-notice p { margin: 0; font-size: 7px; line-height: 1.4; color: #856f50; }
+.contract-link { margin: 5px 0 0 32px; display: inline-flex; align-items: center; gap: 4px; color: #5d6f66; font-size: 7px; text-decoration: none; }
+.contract-link:hover { color: var(--green-2); text-decoration: underline; }
+@keyframes r2-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 1100px) {
   .app-shell { grid-template-columns: 70px minmax(0, 1fr); }
