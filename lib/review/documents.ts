@@ -161,9 +161,9 @@ const MERIDIAN_MNDA: Omit<ReviewDocument, "id" | "reviewer"> = {
     {
       id: "c1",
       clause: "Clause 6.1 — Personal data",
-      title: "Breach notice: “without undue delay” → 24 hours, inside the three-day window",
+      title: "Breach notice: “without undue delay” → 24 hours to support statutory assessment",
       rationale:
-        "s. 26D fixes the Commission filing at three calendar days. An open-ended “without undue delay” promise cannot support that deadline; the firm playbook § 4.6 fallback is a 24-hour processor obligation.",
+        "Once the Disclosing Party determines that a breach is notifiable, s. 26D allows no more than three calendar days for the Commission filing. A fixed processor escalation period gives it time to investigate and make that determination.",
       text: "within 24 hours of becoming aware, and in any event in time for the Disclosing Party to notify the Commission within three calendar days",
       replaced: "without undue delay",
       obligationId: "o1",
@@ -248,9 +248,9 @@ const CALLOWAY_MSA: Omit<ReviewDocument, "id" | "reviewer"> = {
     {
       id: "c1",
       clause: "Clause 12.3 — Data protection",
-      title: "Breach notice: “without undue delay” → 24 hours, inside the three-day window",
+      title: "Breach notice: “without undue delay” → 24 hours to support statutory assessment",
       rationale:
-        "s. 26D shortens the Commission filing to three calendar days. The Supplier's notice is the trigger for that clock, so it needs a fixed 24-hour obligation rather than an open-ended one.",
+        "Once the Customer determines that a breach is notifiable, s. 26D allows no more than three calendar days for the Commission filing. A fixed supplier escalation period gives the Customer time to investigate and make that determination.",
       text: "within 24 hours of becoming aware of, and in any event in time for the Customer to notify the Commission within three calendar days of,",
       replaced: "without undue delay after becoming aware of",
       obligationId: "o1",
@@ -258,9 +258,9 @@ const CALLOWAY_MSA: Omit<ReviewDocument, "id" | "reviewer"> = {
     {
       id: "c2",
       clause: "Clause 12.9 — Data protection",
-      title: "Export assistance for portability requests, with derived data carved out",
+      title: "Future-ready export assistance, with derived data carved out",
       rationale:
-        "s. 26F creates a new obligation to transmit an individual's data in a machine-readable format. Return-or-delete on termination does not help Calloway answer a request during the term; derived data sits outside the obligation and should say so.",
+        "Part 6B was enacted but is not yet in force. This optional drafting prepares for a future commencement without presenting data portability as a current statutory obligation.",
       text: "transmit to the Customer, or to another organisation nominated by the Customer, any Customer Personal Data (including data generated in the course of the Services, but excluding Derived Data) in a commonly used, machine-readable format within ten Business Days of the request, and shall return or delete the remaining Customer Personal Data on expiry or termination of this Agreement",
       replaced: "return or delete Customer Personal Data on expiry or termination of this Agreement",
       obligationId: "o2",
@@ -354,9 +354,9 @@ const CLOUD_HOSTING_DPA: Omit<ReviewDocument, "id" | "reviewer"> = {
     {
       id: "c2",
       clause: "Annex B.2 — Security incident procedure",
-      title: "Incident notice: “within a reasonable time” → 24 hours, inside the three-day window",
+      title: "Incident notice: “within a reasonable time” → 24 hours to support assessment",
       rationale:
-        "s. 26D fixes the Commission filing at three calendar days from assessment. The hosting provider's notice starts Meridian's clock, so it needs the 24-hour fallback from playbook § 4.6.",
+        "Once Meridian determines that a breach is notifiable, s. 26D allows no more than three calendar days for the Commission filing. A fixed provider escalation period gives Meridian time to investigate and make that determination.",
       text: "within 24 hours of detection, and in any event in time for the Controller to notify the Commission within three calendar days",
       replaced: "within a reasonable time",
       obligationId: "o1",
@@ -364,9 +364,9 @@ const CLOUD_HOSTING_DPA: Omit<ReviewDocument, "id" | "reviewer"> = {
     {
       id: "c3",
       clause: "Annex C.1 — Return and export of data",
-      title: "Machine-readable export on request during the term, not only on termination",
+      title: "Future-ready machine-readable export during the term",
       rationale:
-        "s. 26F requires Meridian to transmit an individual's data on request in a commonly used machine-readable format. The DPA only provides for return on termination and is silent on format and derived data.",
+        "Part 6B was enacted but remains uncommenced. This optional clause is future-readiness drafting; it must not be reported as a current statutory requirement.",
       text: "return Controller Data to the Controller, and at any time during the term on written request shall export the Controller Data relating to a named individual (excluding data derived by the Processor's own analysis) in a commonly used, machine-readable format within five Business Days",
       replaced: "return Controller Data to the Controller in the format in which it was received",
       obligationId: "o2",
@@ -432,8 +432,8 @@ const EMPLOYMENT_RAO: Omit<ReviewDocument, "id" | "reviewer"> = {
       clause: "Clause 11.4 — Confidentiality and personal data",
       title: "Consent supplemented by a documented legitimate interests basis",
       rationale:
-        "s. 15A permits processing without consent where the Company's legitimate interests outweigh any adverse effect on the Employee, but only if a written assessment is completed and retained. Consent-only drafting forfeits that basis; the assessment is the whole defence.",
-      text: "on the basis of the Employee's consent given by signing this Agreement or, where the Company's legitimate interests outweigh any adverse effect on the Employee, on the basis of a written legitimate interests assessment completed and retained by the Company under section 15A of the Act and made available to the Employee on request",
+        "The legitimate-interests exception in Part 3 of the First Schedule requires an assessment and reasonable safeguards. Consent-only drafting does not document reliance on that separate exception.",
+      text: "on the basis of the Employee's consent given by signing this Agreement or, where the Company's legitimate interests outweigh any likely adverse effect on the Employee, on the basis of a written assessment completed and retained by the Company under Part 3 of the First Schedule to the Act and made available to the Employee on request",
       replaced: "with the Employee's consent, which the Employee gives by signing this Agreement",
       obligationId: "o3",
     },
@@ -599,7 +599,7 @@ const TEMPLATES: Record<ObligationId, Template> = {
     intro: (v) =>
       `${v.subject} shall maintain appropriate security arrangements to protect personal data in ${v.poss} possession or under ${v.poss} control against unauthorised access, collection, use, disclosure, copying, modification or disposal.`,
     primary: (v) => ({
-      title: "Breach notice: “without undue delay” → 24 hours, inside the three-day window",
+      title: "Breach notice: “without undue delay” → 24 hours to support statutory assessment",
       before: `Where ${v.mid} becomes aware of any unauthorised access to, or loss, disclosure or alteration of, personal data, ${v.employment ? "the Employee" : "it"} shall notify ${v.counterparty} in writing`,
       replaced: "without undue delay",
       text: `within 24 hours of becoming aware, and in any event in time for ${v.counterparty} to notify the Commission within three calendar days`,
@@ -626,24 +626,24 @@ const TEMPLATES: Record<ObligationId, Template> = {
     intro: (v) =>
       `${v.subject} shall respond to a request for access to, or correction of, personal data within 30 days of receiving it, or inform the requester in writing of the date by which ${v.employment ? "the Employee" : "it"} will respond.`,
     primary: (v) => ({
-      title: "Machine-readable transmission on request, with derived data carved out",
+      title: "Future-ready machine-readable transmission, with derived data carved out",
       before: `On written request, ${v.mid} shall`,
       replaced: "return or destroy all personal data on termination of the relationship",
       text: "transmit the requesting individual's personal data, including data generated in the course of the relationship but excluding Derived Data, to the individual or to a nominated organisation with a presence in Singapore in a commonly used, machine-readable format within 30 days",
       after: ".",
     }),
     companion: (v) => ({
-      title: "Definition of derived data, outside the portability obligation",
+      title: "Future-readiness definition of derived data",
       before: "“Derived Data” means",
       replaced: `data produced by ${v.poss === "its" ? v.mid + "'s" : v.poss} own analysis`,
-      text: `data produced by ${v.poss === "its" ? v.mid + "'s" : v.poss} own analysis or processing of personal data, and falls outside the portability obligation in section 26F of the Act`,
+      text: `data produced by ${v.poss === "its" ? v.mid + "'s" : v.poss} own analysis or processing of personal data, for use if the uncommenced portability provisions in Part 6B of the Act come into force`,
       after: ".",
     }),
     definition: (v) => ({
-      title: "“Portable Data” and “Derived Data” defined for s. 26F",
+      title: "Future-readiness definitions for uncommenced Part 6B",
       before: "“Portable Data” means",
       replaced: "personal data provided by an individual",
-      text: `personal data provided by an individual and data generated in the course of the relationship, but excludes “Derived Data”, being data produced by ${v.poss === "its" ? v.mid + "'s" : v.poss} own analysis or processing, which falls outside section 26F of the Act`,
+      text: `personal data provided by an individual and data generated in the course of the relationship, but excludes “Derived Data”, being data produced by ${v.poss === "its" ? v.mid + "'s" : v.poss} own analysis or processing; these definitions apply only if the uncommenced portability provisions in Part 6B of the Act come into force`,
       after: ".",
     }),
   },
@@ -669,7 +669,7 @@ const TEMPLATES: Record<ObligationId, Template> = {
       title: "“Legitimate Interests Assessment” defined",
       before: "“Legitimate Interests Assessment” means a written assessment",
       replaced: "of the purposes of processing",
-      text: "under section 15A of the Act, completed and retained before processing begins, recording that the legitimate interests relied on outweigh any adverse effect on the individual",
+      text: "under Part 3 of the First Schedule to the Act, completed and retained before processing begins, recording that the legitimate interests relied on outweigh any likely adverse effect on the individual",
       after: ".",
     }),
   },

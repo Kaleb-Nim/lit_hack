@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Lora, Playfair_Display, Source_Sans_3 } from "next/font/google";
+import { Geist_Mono, Lora, Playfair_Display, Source_Sans_3 } from "next/font/google";
 import { ReviewProvider } from "@/lib/review/provider";
 import "./globals.css";
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -23,9 +28,9 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "Pearson — PDPA Impact Review",
+  title: "Pearson — Regulatory Workspace",
   description:
-    "Trace the PDPA (Amendment) Act 2026 through every affected clause, review each edit, sign the document, and run the same review across similar files.",
+    "Trace verified Singapore regulatory changes through affected contracts, review proposed edits, and maintain a regulatory audit trail.",
 };
 
 export default function RootLayout({
@@ -36,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${sourceSans.variable} ${lora.variable} h-full antialiased`}
+      className={`${playfair.variable} ${sourceSans.variable} ${lora.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <ReviewProvider>{children}</ReviewProvider>

@@ -88,15 +88,15 @@ review decisions live in `ReviewProvider` (root layout) mirrored to sessionStora
   inline error. Agent B imports this too — write it first and keep the signature.
 - Downloads on the summary: "Download summary" builds a Markdown memo from
   `REGULATION`, `EXECUTIVE_SUMMARY` and `OBLIGATIONS` (or one obligation) and calls
-  `downloadText`. Filenames as in the original (`PDPA_2026_Impact_Summary_Meridian.md`,
-  `PDPA_2026_<ref>_memo.md`).
+  `downloadText`. Filenames identify the source amendment (`PDPA_2020_Impact_Summary_Meridian.md`,
+  `PDPA_2020_<ref>_memo.md`).
 - `app/globals.css` / `app/layout.tsx` additive edits only if truly needed.
 
 ### Agent B — clauses, full document, sign, download, next-in-queue
 - `lib/review/documents.ts` — clause fixtures keyed by `DocId`, shape from redline-review's
   `document.ts` (`SECTIONS`, `CHANGES`, `before | replaced | after`). Content must relate to the
   PDPA obligations that `lib/pdpa/data.ts` says touch that file (e.g. Meridian_MNDA cl. 6.1/6.4
-  → breach notice tightened from "without undue delay" to 24 hours / three-day statutory window;
+  → breach notice tightened from "without undue delay" to 24 hours to leave time for assessment and the three-day post-determination statutory window;
   Calloway MSA cl. 12.3 breach notice, 12.9 portability/export assistance, 15.2 liability cap;
   Employment agreement cl. 11.4 legitimate interests / 11.7 mishandling offence). Write full,
   hand-crafted fixtures for at least these four: `meridian-mnda-v4`, `calloway-msa-2026`,

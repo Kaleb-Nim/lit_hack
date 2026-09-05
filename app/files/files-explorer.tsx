@@ -292,7 +292,7 @@ function RunDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-  const title = `PDPA (Amendment) Act 2026 — selected files`;
+  const title = `Personal Data Protection (Amendment) Act 2020 — selected files`;
   const running = run !== null;
   const finished = running && run.done >= run.ids.length;
 
