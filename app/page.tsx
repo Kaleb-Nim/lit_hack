@@ -112,7 +112,7 @@ export default function Home() {
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <div className="sidebar-brand"><span><GitBranch size={17} /></span><strong>Continuity</strong></div>
+        <div className="sidebar-brand"><span><GitBranch size={17} /></span><strong>Pearson</strong></div>
         <nav aria-label="Primary navigation">
           <small>WORKSPACE</small>
           <button className="active"><LayoutGrid size={16} /><span>Resilience</span></button>
@@ -132,7 +132,7 @@ export default function Home() {
       <div className="main-stage">
         <header className="topbar">
           <div className="breadcrumbs"><span>Atlas Consulting</span><ChevronRight size={13} /><strong>Regulatory resilience</strong></div>
-          <div className="topbar-actions"><button className="search-button"><Search size={15} /><span>Search workspace</span><kbd>⌘ K</kbd></button><button className="icon-button" aria-label="Notifications"><Bell size={16} /><i /></button><button className="ask-button"><Sparkles size={14} />Ask Continuity</button></div>
+          <div className="topbar-actions"><button className="search-button"><Search size={15} /><span>Search workspace</span><kbd>⌘ K</kbd></button><button className="icon-button" aria-label="Notifications"><Bell size={16} /><i /></button><button className="ask-button"><Sparkles size={14} />Ask Pearson</button></div>
         </header>
 
       <section className="content">

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Continuity — Regulatory Resilience",
+  title: "Pearson — Regulatory Resilience",
   description: "A living knowledge graph for tracing, reviewing and revalidating regulatory change.",
 };
 
