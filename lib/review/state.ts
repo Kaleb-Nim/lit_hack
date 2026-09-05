@@ -9,6 +9,7 @@
  */
 
 import type { DocReview, Status } from "@/lib/review/provider";
+import type { DocBlock, DocModel } from "@/lib/docx-model";
 import { changeById, changeIndex, type Clause, type ReviewDocument } from "@/lib/review/documents";
 
 export type { Status };
@@ -218,55 +219,29 @@ function exportModel(doc: ReviewDocument, review: DocReview | undefined): Export
   };
 }
 
-/** Markdown export of the signed document: text, decisions and signature block. */
-export function buildSignedMarkdown(doc: ReviewDocument, review: DocReview | undefined): string {
+/** Word export of the signed document: text, decisions and signature block. */
+export function buildSignedModel(doc: ReviewDocument, review: DocReview | undefined): DocModel {
   const m = exportModel(doc, review);
-  const lines: string[] = [];
-  lines.push(`# ${m.title}`, "", `_${m.kind}_  `, `${m.executedLine}`, "");
+  const blocks: DocBlock[] = [
+    { kind: "kicker", text: m.kind },
+    { kind: "title", text: m.title },
+    { kind: "subtitle", text: m.executedLine },
+    { kind: "rule" },
+  ];
   for (const s of m.sections) {
-    lines.push(`## ${s.heading}`, "");
-    for (const c of s.clauses) lines.push(`**${c.number}** ${c.text}`, "");
+    blocks.push({ kind: "heading", text: s.heading, level: 2 });
+    for (const c of s.clauses) blocks.push({ kind: "clause", number: c.number, text: c.text });
   }
-  lines.push("## Decisions", "", `${m.tally}`, "");
+  blocks.push({ kind: "pagebreak" }, { kind: "heading", text: "Decisions", level: 1 }, { kind: "para", text: m.tally, muted: true });
   for (const dcn of m.decisions) {
-    const label = STATUS_LABEL[dcn.status];
     const note = dcn.status === "accepted" ? "final wording" : dcn.status === "rejected" ? "original wording kept" : "undecided — original wording shown";
-    lines.push(`- **${label}** — ${dcn.clause}: ${dcn.title}  `, `  ${note}: “${dcn.wording}”`);
+    blocks.push({ kind: "bullet", strong: `${STATUS_LABEL[dcn.status]} — ${dcn.clause}: ${dcn.title}.`, text: `${note}: “${dcn.wording}”` });
   }
-  lines.push("", "## Signature", "");
-  lines.push(`${m.signatories[0]}: ${m.signedBy}  `, `Date: ${m.signedDate}`, "", `${m.signatories[1]}: ________________________  `, `Date: ____________`, "");
-  lines.push(`Signed electronically by ${m.signedBy} on ${m.signedDate} via Pearson contract review.`, "");
-  return lines.join("\n");
-}
-
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-/** The same content as the Markdown export, as a self-contained HTML page. */
-export function buildSignedHtml(doc: ReviewDocument, review: DocReview | undefined): string {
-  const m = exportModel(doc, review);
-  const parts: string[] = [];
-  parts.push(
-    "<!doctype html>",
-    `<html lang="en"><head><meta charset="utf-8"><title>${esc(m.title)}</title>`,
-    "<style>body{font-family:Georgia,serif;max-width:760px;margin:48px auto;padding:0 24px;color:#16202c;line-height:1.7}h1{font-size:24px}h2{font-size:16px;margin-top:28px}.kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#6b6459}.stamp{color:#6b6459;font-size:13px}.clause{display:flex;gap:14px;margin:0 0 14px}.num{flex:none;width:36px;color:#8b8577}.sig{display:flex;gap:60px;margin-top:32px;padding-top:24px;border-top:1px solid #ded8cd}.sig div{min-width:200px}.line{border-bottom:1px solid #16202c;height:36px;margin-bottom:6px;font-weight:600}.label{font-size:12.5px;color:#5c5449}ul{padding-left:18px}</style></head><body>",
-    `<div class="kicker">${esc(m.kind)}</div>`,
-    `<h1>${esc(m.title)}</h1>`,
-    `<p class="stamp">${esc(m.executedLine)}</p>`,
+  blocks.push(
+    { kind: "heading", text: "Signature", level: 1 },
+    { kind: "signature", party: m.signatories[0], name: m.signedBy, date: m.signedDate },
+    { kind: "signature", party: m.signatories[1] },
+    { kind: "para", text: `Signed electronically by ${m.signedBy} on ${m.signedDate} via Pearson contract review.`, italic: true, muted: true },
   );
-  for (const s of m.sections) {
-    parts.push(`<h2>${esc(s.heading)}</h2>`);
-    for (const c of s.clauses) parts.push(`<div class="clause"><span class="num">${esc(c.number)}</span><p>${esc(c.text)}</p></div>`);
-  }
-  parts.push("<h2>Decisions</h2>", `<p>${esc(m.tally)}</p>`, "<ul>");
-  for (const dcn of m.decisions) {
-    const note = dcn.status === "accepted" ? "final wording" : dcn.status === "rejected" ? "original wording kept" : "undecided — original wording shown";
-    parts.push(`<li><strong>${STATUS_LABEL[dcn.status]}</strong> — ${esc(dcn.clause)}: ${esc(dcn.title)}<br><em>${note}:</em> “${esc(dcn.wording)}”</li>`);
-  }
-  parts.push("</ul>", "<h2>Signature</h2>", '<div class="sig">');
-  parts.push(`<div><div class="line">${esc(m.signedBy)}</div><div class="label">${esc(m.signatories[0])} · ${esc(m.signedDate)}</div></div>`);
-  parts.push(`<div><div class="line"></div><div class="label">${esc(m.signatories[1])}</div></div>`);
-  parts.push("</div>", `<p class="stamp">Signed electronically by ${esc(m.signedBy)} on ${esc(m.signedDate)} via Pearson contract review.</p>`, "</body></html>");
-  return parts.join("\n");
+  return { title: m.title, description: `${m.kind} · ${m.executedLine}`, blocks };
 }

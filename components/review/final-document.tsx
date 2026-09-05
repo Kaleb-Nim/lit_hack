@@ -4,10 +4,11 @@ import Link from "next/link";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { FlowSteps } from "@/components/flow-steps";
 import { PearsonHeader } from "@/components/pearson-header";
-import { downloadText, fileStem } from "@/lib/download";
+import { fileStem } from "@/lib/download";
+import { downloadDocx } from "@/lib/docx";
 import { changeById, type ReviewDocument } from "@/lib/review/documents";
 import { useReview } from "@/lib/review/provider";
-import { appliedWording, buildSignedHtml, buildSignedMarkdown, derive, formatDate, seedFor, statusOf } from "@/lib/review/state";
+import { appliedWording, buildSignedModel, derive, formatDate, seedFor, statusOf } from "@/lib/review/state";
 
 const DEFAULT_SIGNER = "A. Osei";
 
@@ -38,12 +39,16 @@ export function FinalDocumentView({ doc }: { doc: ReviewDocument }) {
   const clausesHref = `/review/${doc.id}`;
   const stem = fileStem(doc.fileName);
 
-  const save = (format: "md" | "html") => {
-    const ok =
-      format === "md"
-        ? downloadText(`${stem}_signed.md`, buildSignedMarkdown(doc, review), "text/markdown;charset=utf-8")
-        : downloadText(`${stem}_signed.html`, buildSignedHtml(doc, review), "text/html;charset=utf-8");
-    setNote(ok ? null : "Download blocked by the browser — try again or copy the document from the page.");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    setNote(null);
+    try {
+      const ok = await downloadDocx(`${stem}_signed.docx`, buildSignedModel(doc, review));
+      if (!ok) setNote("Download blocked by the browser — try again or copy the document from the page.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -163,18 +168,11 @@ export function FinalDocumentView({ doc }: { doc: ReviewDocument }) {
                 <button
                   type="button"
                   className="btn btn--navy"
-                  disabled={!ready || !derived.signed}
-                  onClick={() => save("md")}
+                  disabled={!ready || !derived.signed || saving}
+                  aria-busy={saving}
+                  onClick={save}
                 >
-                  Save / download
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  disabled={!ready || !derived.signed}
-                  onClick={() => save("html")}
-                >
-                  Download as HTML
+                  {saving ? "Preparing .docx…" : "Save / download (.docx)"}
                 </button>
                 {ready && !derived.signed && <span className="signBlock__hint">Available once the document is signed.</span>}
               </div>

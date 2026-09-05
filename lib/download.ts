@@ -4,10 +4,14 @@
  * URLs, or a non-browser environment — so callers can show an inline note.
  */
 export function downloadText(filename: string, text: string, mime = "text/plain;charset=utf-8"): boolean {
+  return downloadBlob(filename, new Blob([text], { type: mime }));
+}
+
+/** Save an already-built Blob (e.g. a .docx) under `filename`. Same contract as downloadText. */
+export function downloadBlob(filename: string, blob: Blob): boolean {
   if (typeof window === "undefined" || typeof document === "undefined") return false;
   let url: string | null = null;
   try {
-    const blob = new Blob([text], { type: mime });
     url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

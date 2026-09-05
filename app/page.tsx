@@ -10,81 +10,71 @@ import {
   REGULATION,
   type Obligation,
 } from "@/lib/pdpa/data";
+import type { DocBlock, DocModel } from "@/lib/docx-model";
 import { DownloadButton } from "./download-button";
 import "./summary.css";
 
-/* ── Markdown memos ─────────────────────────────────────────────── */
+/* ── Word memos ─────────────────────────────────────────────────── */
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 /** "s. 26D — Notifiable breaches" → "26D" (matches the original export filenames). */
 const refCode = (ref: string) => (ref.split(" ")[1] ?? ref).replace(".", "");
 
-function obligationSection(o: Obligation): string {
-  const docs = o.docs.map((d) => {
-    const f = FILE_BY_ID[d.docId];
-    return `- ${f.file} (${f.path}) — ${d.clauses}`;
-  });
-  const policies = o.policies.map((p) => `- **${p.name}**, ${p.clause}: ${p.change}`);
+function obligationBlocks(o: Obligation): DocBlock[] {
   return [
-    `## ${o.ref}`,
-    "",
-    `**${o.title}**`,
-    "",
-    `- Severity: ${o.severity}`,
-    `- Deadline: ${o.deadline}`,
-    `- Owner: ${o.owner}`,
-    "",
-    "### Action",
-    "",
-    o.action,
-    "",
-    "### What changes",
-    "",
-    o.what,
-    "",
-    "### Exposure if unchanged",
-    "",
-    o.risk,
-    "",
-    "### Policies modified",
-    "",
-    ...policies,
-    "",
-    `### Documents affected (${o.docs.length})`,
-    "",
-    ...docs,
-    "",
-  ].join("\n");
-}
-
-function frontMatter(title: string): string[] {
-  return [
-    `# ${title}`,
-    "",
-    `${REGULATION.jurisdiction}  `,
-    `${REGULATION.gazette}  `,
-    `${REGULATION.client} · ${REGULATION.matter}  `,
-    `${REGULATION.preparedLine}`,
-    "",
+    { kind: "heading", text: o.ref, level: 2 },
+    { kind: "para", text: o.title, italic: true },
+    { kind: "label", label: "Severity", text: o.severity },
+    { kind: "label", label: "Deadline", text: o.deadline },
+    { kind: "label", label: "Owner", text: o.owner },
+    { kind: "heading", text: "Action", level: 3 },
+    { kind: "para", text: o.action },
+    { kind: "heading", text: "What changes", level: 3 },
+    { kind: "para", text: o.what },
+    { kind: "heading", text: "Exposure if unchanged", level: 3 },
+    { kind: "para", text: o.risk },
+    { kind: "heading", text: "Policies modified", level: 3 },
+    ...o.policies.map<DocBlock>((p) => ({ kind: "bullet", strong: `${p.name}, ${p.clause}:`, text: p.change })),
+    { kind: "heading", text: `Documents affected (${o.docs.length})`, level: 3 },
+    ...o.docs.map<DocBlock>((d) => {
+      const f = FILE_BY_ID[d.docId];
+      return { kind: "bullet", strong: f.file, text: `(${f.path}) — ${d.clauses}` };
+    }),
   ];
 }
 
-function summaryMemo(): string {
-  const actionCount = OBLIGATIONS.filter((o) => o.severity === "Action required").length;
+function frontMatter(title: string): DocBlock[] {
   return [
-    ...frontMatter(`${REGULATION.title} — impact summary`),
-    "## Executive summary",
-    "",
-    ...EXECUTIVE_SUMMARY.flatMap((p) => [p, ""]),
-    `_${OBLIGATIONS.length} obligations · ${actionCount} require drafting · ${FILES.length} files affected_`,
-    "",
-    ...OBLIGATIONS.map(obligationSection),
-  ].join("\n");
+    { kind: "kicker", text: REGULATION.jurisdiction },
+    { kind: "title", text: title },
+    { kind: "subtitle", text: REGULATION.gazette },
+    { kind: "subtitle", text: `${REGULATION.client} · ${REGULATION.matter}` },
+    { kind: "subtitle", text: REGULATION.preparedLine },
+    { kind: "rule" },
+  ];
 }
 
-function obligationMemo(o: Obligation): string {
-  return [...frontMatter(`${REGULATION.title} — ${o.ref}`), obligationSection(o)].join("\n");
+function summaryMemo(): DocModel {
+  const actionCount = OBLIGATIONS.filter((o) => o.severity === "Action required").length;
+  const title = `${REGULATION.title} — impact summary`;
+  return {
+    title,
+    description: `Impact summary for ${REGULATION.client}, ${REGULATION.matter}`,
+    blocks: [
+      ...frontMatter(title),
+      { kind: "heading", text: "Executive summary", level: 1 },
+      ...EXECUTIVE_SUMMARY.map<DocBlock>((p) => ({ kind: "para", text: p })),
+      { kind: "para", text: `${OBLIGATIONS.length} obligations · ${actionCount} require drafting · ${FILES.length} files affected`, italic: true, muted: true },
+      { kind: "heading", text: "Key actionable items", level: 1 },
+      ...OBLIGATIONS.flatMap(obligationBlocks),
+    ],
+  };
+}
+
+function obligationMemo(o: Obligation): DocModel {
+  const title = `${REGULATION.title} — ${o.ref}`;
+  return { title, description: o.title, blocks: [...frontMatter(title), ...obligationBlocks(o)] };
 }
 
 /* ── Page ───────────────────────────────────────────────────────── */
@@ -105,8 +95,8 @@ export default function SummaryPage() {
         actions={
           <>
             <DownloadButton
-              filename="PDPA_2026_Impact_Summary_Meridian.md"
-              text={summaryMemo()}
+              filename="PDPA_2026_Impact_Summary_Meridian.docx"
+              model={summaryMemo()}
               label="Download summary"
               className="btn btn--outline-light"
             />
@@ -147,7 +137,7 @@ export default function SummaryPage() {
               ))}
               <div className="exec__foot">
                 <span className="exec__prepared">{REGULATION.preparedLine}</span>
-                <DownloadButton filename="PDPA_2026_Impact_Summary_Meridian.md" text={summaryMemo()} label="Download summary" />
+                <DownloadButton filename="PDPA_2026_Impact_Summary_Meridian.docx" model={summaryMemo()} label="Download summary" />
               </div>
             </section>
 
@@ -249,7 +239,7 @@ function ObligationCard({ obligation: o }: { obligation: Obligation }) {
           </Link>
           <span className="ob__meta">·</span>
           <span className="ob__meta">Owner: {o.owner}</span>
-          <DownloadButton filename={`PDPA_2026_${refCode(o.ref)}_memo.md`} text={obligationMemo(o)} label="Download memo" />
+          <DownloadButton filename={`PDPA_2026_${refCode(o.ref)}_memo.docx`} model={obligationMemo(o)} label="Download memo" />
         </div>
       </div>
     </article>

@@ -122,9 +122,9 @@ review decisions live in `ReviewProvider` (root layout) mirrored to sessionStora
   Below the signature block: a **Sign** control — a name input (default `A. Osei`) and a
   "Sign document" button; once signed, render the name + date on the signature line, a
   "Signed" chip in the bar, and enable **"Save / download"** which calls
-  `downloadText(<fileName without .docx>_signed.md, ...)` with the full document text,
-  decisions tally and signature block (Markdown). Also offer "Download as HTML" using the same
-  content. If any edits are still open, the Sign button is disabled with the hint
+  `downloadDocx(<fileName>_signed.docx, ...)` with the full document,
+  decisions tally and signature block as a real Word file (docx package, browser-side).
+  If any edits are still open, the Sign button is disabled with the hint
   "Decide every clause before signing" and a link back to `/review/[docId]`.
   Then two CTAs: "Find all similar cases & run →" (Link `/files?similar=[docId]`) and, only
   when `nextInQueue(docId)` is non-null, "Open next document →" (Link `/review/[next]`), with a
