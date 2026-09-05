@@ -1,0 +1,496 @@
+<title>Clause Dependency Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#E9ECEF; --surface:#FFFFFF; --surface-2:#F4F6F8; --sunk:#DFE3E8;
+  --ink:#12161B; --ink-2:#39424D; --muted:#69737E; --faint:#98A1AB;
+  --rule:#CFD5DC; --rule-soft:#E2E6EB;
+  --accent:#1C4A7C; --accent-soft:#E3ECF5; --accent-ink:#163C66;
+  --contradicted:#A31D17; --contradicted-bg:#F8E7E5;
+  --insufficient:#8A560A; --insufficient-bg:#FAEFDC;
+  --stale:#4F4A78; --stale-bg:#EBE9F4;
+  --unreviewed:#6A737D; --unreviewed-bg:#E8EBEE;
+  --nil:#1B6448; --nil-bg:#E2F0EA;
+  --shadow:0 1px 2px rgba(18,22,27,.06),0 6px 18px -8px rgba(18,22,27,.16);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1116; --surface:#151A21; --surface-2:#1B222B; --sunk:#0A0E12;
+    --ink:#E3E8EE; --ink-2:#BDC6D0; --muted:#8B96A2; --faint:#697481;
+    --rule:#2B333D; --rule-soft:#222A33;
+    --accent:#79AEE4; --accent-soft:#152538; --accent-ink:#A8CBEE;
+    --contradicted:#F0857C; --contradicted-bg:#2E1615;
+    --insufficient:#E0AC5B; --insufficient-bg:#2C2013;
+    --stale:#A9A2D8; --stale-bg:#1F1D2E;
+    --unreviewed:#8C96A1; --unreviewed-bg:#1D232B;
+    --nil:#68C39B; --nil-bg:#12261E;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -10px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1116; --surface:#151A21; --surface-2:#1B222B; --sunk:#0A0E12;
+  --ink:#E3E8EE; --ink-2:#BDC6D0; --muted:#8B96A2; --faint:#697481;
+  --rule:#2B333D; --rule-soft:#222A33;
+  --accent:#79AEE4; --accent-soft:#152538; --accent-ink:#A8CBEE;
+  --contradicted:#F0857C; --contradicted-bg:#2E1615;
+  --insufficient:#E0AC5B; --insufficient-bg:#2C2013;
+  --stale:#A9A2D8; --stale-bg:#1F1D2E;
+  --unreviewed:#8C96A1; --unreviewed-bg:#1D232B;
+  --nil:#68C39B; --nil-bg:#12261E;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -10px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:600;letter-spacing:-.011em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- frame ---------- */
+.shell{max-width:1500px;margin:0 auto;padding:0 20px 72px}
+.masthead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;padding:26px 0 18px;border-bottom:1px solid var(--rule)}
+.brand h1{font-size:23px}
+.brand p{margin:5px 0 0;color:var(--muted);max-width:62ch;font-size:13px}
+.standing{display:flex;gap:26px;align-items:flex-end}
+.stat{text-align:right}
+.stat b{display:block;font-family:var(--mono);font-size:22px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:3px}
+
+/* ---------- intake ---------- */
+.intake{margin:20px 0 0}
+.intake-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:9px}
+.intake-head p{margin:0;color:var(--muted);font-size:12.5px}
+.runs{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:10px}
+.run{position:relative;display:flex;flex-direction:column;gap:7px;text-align:left;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--rule);padding:13px 15px;transition:border-color .14s,background .14s}
+.run:hover{border-color:var(--faint);border-left-color:var(--accent)}
+.run[aria-pressed="true"]{border-color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft)}
+.run .cite{font-family:var(--mono);font-size:10.5px;color:var(--accent-ink);letter-spacing:.02em}
+.run strong{font-size:13.5px;font-weight:600;line-height:1.35}
+.run em{font-style:normal;color:var(--muted);font-size:12px;line-height:1.45}
+.run .commenced{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:1px}
+
+/* ---------- workbench ---------- */
+.bench{display:grid;grid-template-columns:216px minmax(0,1fr) minmax(0,380px);gap:16px;margin-top:22px;align-items:start}
+@media(max-width:1180px){.bench{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--rule)}
+.panel-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid var(--rule-soft)}
+.panel-hd h2{font-size:12px;letter-spacing:.02em}
+
+/* corpus rail */
+.doc{width:100%;display:block;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-soft);padding:10px 14px}
+.doc:last-child{border-bottom:0}
+.doc:hover{background:var(--surface-2)}
+.doc[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.doc-id{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.doc-name{font-size:12.5px;font-weight:500;margin:2px 0 4px;line-height:1.35}
+.doc-meta{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
+.pips{display:flex;gap:2px}
+.pip{width:5px;height:5px;border-radius:50%}
+
+/* ledger table */
+.ledger-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--surface);text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:500;padding:9px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--rule-soft);cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr[aria-selected="true"]{background:var(--accent-soft)}
+tbody tr.dim{opacity:.38}
+td{padding:9px 12px;vertical-align:top}
+td.c-clause{white-space:nowrap}
+td.c-clause b{display:block;font-family:var(--mono);font-size:11.5px;font-weight:500}
+td.c-clause span{display:block;font-size:11px;color:var(--muted);margin-top:1px;max-width:19ch;overflow:hidden;text-overflow:ellipsis}
+td.c-oblig{max-width:31ch}
+td.c-oblig b{display:block;font-weight:500;font-size:12px}
+td.c-oblig span{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+td.c-pin{white-space:nowrap}
+.pin{font-family:var(--mono);font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.pin i{font-style:normal;color:var(--faint)}
+.srctype{display:inline-block;margin-top:2px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+
+/* state chips */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 7px 2px 6px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;border:1px solid transparent}
+.chip::before{content:"";width:5px;height:5px;flex:none}
+.s-contradicted{color:var(--contradicted);background:var(--contradicted-bg);border-color:var(--contradicted)}
+.s-contradicted::before{background:var(--contradicted)}
+.s-insufficient{color:var(--insufficient);background:var(--insufficient-bg);border-color:var(--insufficient)}
+.s-insufficient::before{background:var(--insufficient)}
+.s-stale{color:var(--stale);background:var(--stale-bg);border-color:var(--stale)}
+.s-stale::before{background:var(--stale)}
+.s-unreviewed{color:var(--unreviewed);background:var(--unreviewed-bg);border-color:var(--rule);border-style:dashed}
+.s-unreviewed::before{background:var(--unreviewed);border-radius:50%}
+
+/* detail */
+.detail{position:sticky;top:14px}
+.detail-body{padding:14px}
+.detail h3{font-size:14.5px;line-height:1.35;margin-bottom:3px}
+.detail .where{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:12px}
+.block{margin-top:14px}
+.block>.eyebrow{display:block;margin-bottom:5px}
+blockquote{margin:0;padding:9px 12px;background:var(--surface-2);border-left:2px solid var(--accent);font-family:var(--serif);font-size:12.5px;line-height:1.6;color:var(--ink-2)}
+blockquote cite{display:block;margin-top:6px;font-family:var(--mono);font-style:normal;font-size:10.5px;color:var(--faint)}
+.span-quote{font-family:var(--serif);font-size:12.5px;line-height:1.6;background:var(--surface-2);padding:9px 12px;border-left:2px solid var(--rule)}
+.span-quote mark{background:var(--insufficient-bg);color:var(--insufficient);padding:0 1px;box-shadow:inset 0 -1px 0 var(--insufficient)}
+.reason{color:var(--ink-2);font-size:12.5px;line-height:1.55}
+.diff{font-family:var(--serif);font-size:12px;line-height:1.55;border:1px solid var(--rule-soft)}
+.diff div{padding:7px 10px 7px 22px;position:relative}
+.diff div::before{position:absolute;left:8px;font-family:var(--mono);font-size:11px}
+.diff .del{background:var(--contradicted-bg);color:var(--ink-2)}
+.diff .del::before{content:"−";color:var(--contradicted)}
+.diff .add{background:var(--nil-bg);color:var(--ink-2);border-top:1px solid var(--rule-soft)}
+.diff .add::before{content:"+";color:var(--nil)}
+.acts{display:flex;gap:8px;margin-top:12px}
+.acts button{flex:1;padding:7px 10px;background:var(--surface);border:1px solid var(--rule);font-size:12px;font-weight:500}
+.acts button:hover{border-color:var(--accent);color:var(--accent-ink)}
+.acts .primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .acts .primary,:root:not([data-theme="light"]) .acts .primary{color:#0D1116}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .acts .primary{color:#fff}}
+.acts .primary:hover{opacity:.9;color:#fff}
+:root[data-theme="dark"] .acts .primary:hover{color:#0D1116}
+.empty{padding:30px 16px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.6}
+
+/* null result */
+.nil-card{margin:0;padding:14px;background:var(--nil-bg);border:1px solid var(--nil);border-left:3px solid var(--nil)}
+.nil-card b{display:block;font-family:var(--mono);font-size:19px;color:var(--nil);font-weight:500;line-height:1.2}
+.nil-card p{margin:7px 0 0;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+
+/* coverage */
+.coverage{margin-top:16px;background:var(--surface);border:1px solid var(--rule);padding:14px}
+.covbar{display:flex;height:8px;margin:9px 0 8px;background:var(--sunk);overflow:hidden}
+.covbar i{display:block;height:100%}
+.covkey{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted)}
+.covkey span{display:flex;align-items:center;gap:5px}
+.covkey b{width:7px;height:7px;display:block}
+.note{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--rule-soft);padding-top:9px}
+footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--rule);color:var(--muted);font-size:11.5px;line-height:1.6}
+footer a{color:var(--accent-ink)}
+footer p{margin:0 0 7px;max-width:96ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="shell">
+
+<header class="masthead">
+  <div class="brand">
+    <div class="eyebrow">Rajah &amp; Tann &middot; on-premises corpus &middot; law as at 5 Sep 2026</div>
+    <h1>Clause Dependency Ledger</h1>
+    <p>Every clause is bound to the statutory provision it silently relies on. No document in this corpus ever cited a statute. These edges were inferred, and kept.</p>
+  </div>
+  <div class="standing">
+    <div class="stat"><b id="stat-edges">98</b><span class="eyebrow">edges held</span></div>
+    <div class="stat"><b id="stat-open">0</b><span class="eyebrow">open findings</span></div>
+    <div class="stat"><b id="stat-docs">5</b><span class="eyebrow">documents</span></div>
+  </div>
+</header>
+
+<section class="intake">
+  <div class="intake-head">
+    <h2 class="eyebrow">Intake &mdash; provision-level amendments from Singapore Statutes Online</h2>
+    <p>Select an instrument to re-run only the assertions its provisions touch.</p>
+  </div>
+  <div class="runs" id="runs"></div>
+</section>
+
+<div class="bench">
+
+  <aside class="panel">
+    <div class="panel-hd"><h2>Corpus</h2><span class="eyebrow" id="corpus-count">32 clauses</span></div>
+    <div id="docs"></div>
+  </aside>
+
+  <section class="panel">
+    <div class="panel-hd">
+      <h2 id="ledger-title">Dependency ledger</h2>
+      <span class="eyebrow" id="ledger-count"></span>
+    </div>
+    <div class="ledger-wrap">
+      <table>
+        <thead><tr>
+          <th>Clause</th><th>Obligation relied on</th><th>Pinned to</th><th>State</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <aside class="detail">
+    <div class="panel"><div class="detail-body" id="detail"></div></div>
+    <div class="coverage">
+      <div class="eyebrow">Assertion coverage</div>
+      <div class="covbar" id="covbar"></div>
+      <div class="covkey">
+        <span><b style="background:var(--contradicted)"></b>Contradicted</span>
+        <span><b style="background:var(--insufficient)"></b>Insufficient</span>
+        <span><b style="background:var(--stale)"></b>Stale</span>
+        <span><b style="background:var(--unreviewed)"></b>Unreviewed</span>
+      </div>
+      <p class="note"><strong>There is no compliant state.</strong> The ledger cannot represent a clause as safe. An edge is either failing, or not yet reviewed. Silence is never evidence of compliance.</p>
+    </div>
+  </aside>
+
+</div>
+
+<footer>
+  <p><strong>What is real here.</strong> The instruments, commencement dates and statutory quotes are taken from Singapore Statutes Online and PDPC guidance and were verified against primary sources. The clause text is verbatim from five real signed Singapore employment documents, redacted: the individual is a pseudonym, identifiers and figures are removed, and two employers are pseudonymised. This page is a hard-coded walkthrough of the pipeline, not the running pipeline.</p>
+  <p><strong>What this page does not claim.</strong> Singapore Statutes Online is not the authoritative text; the Gazette is. Guidance-derived assertions carry a retrieval date and content hash rather than a version pin, because the PDPC does not version its advisory guidelines &mdash; the NRIC guidelines still read &ldquo;last updated 31 Aug 2018&rdquo;. Those assertions can be flagged unverifiable, never proved stale.</p>
+</footer>
+</div>
+
+<script>
+const RUNS = [
+  { id:"pre", cite:"No instrument", title:"Standing scan of the corpus", blurb:"Nine textual checks that need no model and cannot hallucinate. Run continuously, not on a trigger.", commenced:"Latent debt already present", kind:"deterministic" },
+  { id:"pdpa2021", cite:"Act 40 of 2020", title:"PDPA (Amendment) Act 2020", blurb:"Rebuilt the consent architecture, added breach notification at Part 6A and individual offences at Part 9B.", commenced:"In force 1 Feb 2021", kind:"amendment" },
+  { id:"regs2026", cite:"S 86/2026", title:"PDP (Amendment) Regulations 2026", blurb:"Widened the certification route for cross-border transfer to the Global CBPR and Global PRP systems.", commenced:"In force 2 Mar 2026", kind:"amendment" },
+  { id:"act19", cite:"Act 19 of 2025", title:"Statutes (Miscellaneous Amendments) Act 2025", blurb:"One instrument, one commencement date, two Acts amended. Watch the two answers diverge.", commenced:"In force 5 Dec 2025", kind:"split" }
+];
+
+const DOCS = [
+  { id:"DOC-001", name:"Legal intern offer, eyewear group", meta:"Executed &middot; Apr 2026", clauses:9 },
+  { id:"DOC-002", name:"Internship agreement, consultancy", meta:"Counterpart &middot; Jun 2025", clauses:8 },
+  { id:"DOC-003", name:"Internship offer, Silverbirch LLC", meta:"Executed &middot; small law firm", clauses:7 },
+  { id:"DOC-004", name:"Programme letter, Anson Chambers", meta:"Executed &middot; small law firm", clauses:4 },
+  { id:"DOC-005", name:"Master agreement, drafting precedent", meta:"Template &middot; not executed", clauses:4 }
+];
+
+const L = [
+  { id:"DOC-001-C14", doc:"DOC-001", clause:"cl 14", heading:"Personal data protection",
+    oblig:"Transfer limitation", obligSub:"Legally enforceable obligations abroad",
+    prov:"reg 11, PDP Regs 2021", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"stale", pre:"unreviewed", act19:"unreviewed" },
+    span:"Where your personal data is transferred out of Singapore, the Employer will take <mark>reasonable steps</mark> to ensure that your personal data continues to receive a standard of protection comparable to that under the Act.",
+    quote:"An organisation must, before transferring personal data outside Singapore, take appropriate steps to ensure that the recipient is bound by legally enforceable obligations to provide a standard of protection comparable to that under the Act.",
+    quoteCite:"PDP Regulations 2021, reg 11 &middot; sso.agc.gov.sg",
+    why:"Regulation 11 admits four routes: law, a contract specifying destination countries, binding corporate rules, or another legally binding instrument. Reasonable steps is none of them, and no destination country is named. The clause promises an outcome where the rule demands an instrument.",
+    del:"the Employer will take reasonable steps to ensure that your personal data continues to receive a standard of protection comparable to that under the Act.",
+    add:"the transfer is made under the Employer's binding corporate rules, which specify the recipients, the countries to which data may be transferred, and the recipient obligations, in accordance with reg 11 and reg 12 of the Personal Data Protection Regulations 2021.",
+    prop:"Rewrite the transfer limb onto an intra-group instrument naming destination countries." },
+
+  { id:"DOC-001-C14b", doc:"DOC-001", clause:"cl 14", heading:"Personal data protection",
+    oblig:"Notification of purpose", obligSub:"Consent not required for employment",
+    prov:"s 20(4)–(5), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"stale", regs2026:"unreviewed", pre:"stale", act19:"unreviewed" },
+    span:"You hereby <mark>consent</mark> to the Employer collecting, using, processing, and/or disclosing any or all personal data relevant to your internship, for the purposes set out in the Group Employee Privacy Notice 2022.",
+    quote:"While consent is not required, employers are required to notify their employees of the purposes for which their personal data will be collected, used or disclosed.",
+    quoteCite:"PDPC Advisory Guidelines, Selected Topics ¶6.19, rev. 23 May 2024 &middot; guidance",
+    why:"This is not an over-broad consent. It is the wrong instrument. Since 1 Feb 2021 the employment-management exception removes the need for consent, and s 20(4) imposes a notification duty instead. The clause supplies a consent nobody needs, and withholds the notice the Act now requires. Worse, a consent can be withdrawn under s 16; the exception cannot.",
+    del:"You hereby consent to the Employer collecting, using, processing, and/or disclosing any or all personal data relevant to your internship",
+    add:"The Employer collects, uses and discloses your personal data in reliance on the employment-management exception in the First Schedule, Part 3, paragraph 10. The purposes are set out below, and questions may be directed to the contact point named at clause 14.4.",
+    prop:"Re-base from consent onto the exception, and add the s 20(5) contact point." },
+
+  { id:"DOC-002-C15", doc:"DOC-002", clause:"cl 15", heading:"Personal data protection",
+    oblig:"Data protection officer", obligSub:"An individual, not a department",
+    prov:"s 11(3) and s 11(5), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"contradicted", regs2026:"unreviewed", pre:"unreviewed", act19:"unreviewed" },
+    span:"If you consider your data to be inaccurate or if you simply wish to have access to such data to verify it, you may do so by contacting the <mark>Human Resource Department</mark>.",
+    quote:"An organisation must designate one or more individuals to be responsible for ensuring that the organisation complies with this Act… and must make available to the public the business contact information of at least one such individual.",
+    quoteCite:"PDPA 2012, s 11(3) and s 11(5) &middot; sso.agc.gov.sg",
+    why:"The Act requires a designated individual and published business contact information for at least one of them. A department is not an individual. This is the one finding in the corpus that is contradicted rather than merely insufficient: the clause routes the statutory access channel somewhere the statute does not permit.",
+    del:"you may do so by contacting the Human Resource Department.",
+    add:"you may do so by contacting the Data Protection Officer, whose business contact information is published at [DPO CONTACT] in accordance with s 11(5) of the Act.",
+    prop:"Designate a named individual and publish the contact information." },
+
+  { id:"DOC-002-C15b", doc:"DOC-002", clause:"cl 15", heading:"Personal data protection",
+    oblig:"Transfer limitation", obligSub:"Same rule, different failure",
+    prov:"reg 11, PDP Regs 2021", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"stale", pre:"unreviewed", act19:"unreviewed" },
+    span:"where the transfer of data outside Singapore is involved, <mark>appropriate measures</mark> are taken to ensure that adequate safeguards are in place.",
+    quote:"An organisation must, before transferring personal data outside Singapore, take appropriate steps to ensure that the recipient is bound by legally enforceable obligations to provide a standard of protection comparable to that under the Act.",
+    quoteCite:"PDP Regulations 2021, reg 11 &middot; sso.agc.gov.sg",
+    why:"Hit by the same rule as DOC-001 but failing in a different place, and a tool that proposed the same edit to both would be wrong. This document is stronger on notification: it enumerates purposes in-line and annexes the data types and recipients, which is close to what s 20(4) wants. It is weaker on transfer, where adequate safeguards does not even track the statutory comparable standard wording.",
+    del:"appropriate measures are taken to ensure that adequate safeguards are in place.",
+    add:"the transfer is made under a contract that specifies the countries to which the personal data may be transferred and requires the recipient to provide a standard of protection comparable to that under the Act.",
+    prop:"Leave the notification limb alone. Replace only the transfer limb." },
+
+  { id:"DOC-001-C10", doc:"DOC-001", clause:"cl 10", heading:"Confidentiality",
+    oblig:"Breach assessment window", obligSub:"Three calendar days to notify",
+    prov:"s 26C and s 26D(1), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"unreviewed", pre:"unreviewed", act19:"unreviewed" },
+    span:"You agree to maintain the confidentiality of all Confidential Information and <mark>not to disclose</mark> any Confidential Information to any third party or use it for any purpose other than in the performance of your duties.",
+    quote:"An organisation must notify the Commission as soon as is practicable, but in any case no later than 3 calendar days after the day the organisation makes the assessment that a notifiable data breach has occurred.",
+    quoteCite:"PDPA 2012, s 26D(1) &middot; sso.agc.gov.sg",
+    why:"The three-day clock starts when the organisation assesses a breach, and it assesses because a member of staff escalated something. This clause imposes a comprehensive duty of silence and creates no internal reporting route. An intern who notices a breach is contractually instructed to keep quiet. The employer's compliance with a statutory deadline depends on a path its own contract never builds, and mildly discourages.",
+    del:"not to disclose any Confidential Information to any third party or use it for any purpose other than in the performance of your duties.",
+    add:"not to disclose any Confidential Information to any third party, save that you must immediately report any suspected loss or unauthorised access to personal data to the Data Protection Officer. Nothing in this clause restricts that report.",
+    prop:"One edit pattern that propagates across four of the five documents." },
+
+  { id:"DOC-003-C7.1", doc:"DOC-003", clause:"cl 7.1", heading:"Confidentiality and NDA",
+    oblig:"Breach assessment window", obligSub:"Same pattern, law firm exposure",
+    prov:"s 26C and s 26D(1), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"unreviewed", pre:"unreviewed", act19:"unreviewed" },
+    span:"You agree to maintain the confidentiality of all Confidential Information belonging to the Firm <mark>and its clients</mark>, and not to disclose any Confidential Information to any third party.",
+    quote:"An organisation must notify the Commission as soon as is practicable, but in any case no later than 3 calendar days after the day the organisation makes the assessment that a notifiable data breach has occurred.",
+    quoteCite:"PDPA 2012, s 26D(1) &middot; sso.agc.gov.sg",
+    why:"The same silence, with the exposure raised. This intern handles client personal data at a law firm, so her personal liability under the Part 9B offences is the highest of anyone in the corpus, and the document tells her nothing about it. Clause 7.3 compounds it by sunsetting confidentiality after one year, inviting the inference that her duties over client personal data expire too. They do not.",
+    del:"and not to disclose any Confidential Information to any third party.",
+    add:"and not to disclose any Confidential Information to any third party, save that you must immediately report any suspected loss or unauthorised access to personal data, whether the Firm's or a client's, to the Firm's Data Protection Officer.",
+    prop:"Same edit pattern as DOC-001 cl 10. The ledger found it by the edge, not the wording." },
+
+  { id:"DOC-003-C4.5", doc:"DOC-003", clause:"cl 4.5", heading:"Compliance with laws",
+    oblig:"Notification of purpose", obligSub:"Nothing asserted, nothing to amend",
+    prov:"s 20(4)–(5), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"unreviewed", pre:"insufficient", act19:"unreviewed" },
+    span:"You must comply with all applicable laws and regulations, <mark>including but not limited to those related to data protection</mark>, privacy, and intellectual property.",
+    quote:"An organisation must, on or before collecting personal data about an individual, notify the individual of the purpose for which the organisation will collect, use or disclose the personal data.",
+    quoteCite:"PDPA 2012, s 20(4) &middot; sso.agc.gov.sg",
+    why:"The entire data protection content of this document is one sentence in a conduct clause telling the intern to obey data protection law. Nothing is contradicted, because nothing is asserted. There is no notification of purposes, no officer, no transfer position, no retention position and no breach route. Insufficiency in its strongest form: the obligation is acknowledged and then left empty.",
+    del:null,
+    add:"A data protection clause must be added from scratch, together with a client-data handling protocol and a breach escalation route.",
+    prop:"Nothing to amend. A clause must be created." },
+
+  { id:"DOC-004-FACE", doc:"DOC-004", clause:"face", heading:"The letter itself",
+    oblig:"Notification of purpose", obligSub:"Collects identifiers and pays income",
+    prov:"s 20(4), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"unreviewed", pre:"insufficient", act19:"unreviewed" },
+    span:"A four-paragraph letter collecting full name, alternative name, <mark>identification number</mark> and full residential address, and paying an allowance. It contains no data protection provision of any kind.",
+    quote:"Personal data relating to an individual's income, together with the individual's name or identification number, is prescribed as a data set the unauthorised disclosure of which is deemed to result in significant harm.",
+    quoteCite:"PDP (Notification of Data Breaches) Regulations 2021, reg 3 &middot; sso.agc.gov.sg",
+    why:"Name plus identification number plus income is the deemed significant-harm combination, which means the exact payload of this letter is a notifiable breach if it leaks. The document performs a regulated act and carries no regulatory content whatsoever.",
+    del:null,
+    add:"The gap is total. This letter needs replacing with one carrying key employment terms and an s 20(4) notification.",
+    prop:"Cannot be patched clause by clause." },
+
+  { id:"DOC-005-C15", doc:"DOC-005", clause:"cl 15", heading:"Confidentiality",
+    oblig:"Notification of purpose", obligSub:"Template, not executed",
+    prov:"s 20(4), PDPA", pin:"2021-02-01", src:"statute",
+    runs:{ pdpa2021:"insufficient", regs2026:"unreviewed", pre:"insufficient", act19:"unreviewed" },
+    span:"Clauses 5 and 6 run a Tenant Candidate Evaluation Table scoring identified individuals on <mark>Team Quality and Cultural Fit</mark>, allocated between two contracting parties and a Property Manager.",
+    quote:"An organisation must, on or before collecting personal data about an individual, notify the individual of the purpose for which the organisation will collect, use or disclose the personal data.",
+    quoteCite:"PDPA 2012, s 20(4) &middot; sso.agc.gov.sg",
+    why:"A multi-party personal-data processing architecture with a commercial confidentiality clause that protects the parties and no clause protecting the data subjects. Confidentiality between the parties does nothing for the individuals being scored. This is the highest-leverage fix in the corpus, because it is a precedent rather than a one-off.",
+    del:null,
+    add:"Add a data protection schedule allocating controller and processor roles between the parties and the Property Manager, with an s 20(4) notification to each scored individual.",
+    prop:"Fixing the template fixes every unwritten future document. Fixing a signed contract fixes one." },
+
+  { id:"DOC-002-C7", doc:"DOC-002", clause:"cl 7", heading:"Deductions from salary",
+    oblig:"Permitted deductions", obligSub:"Enumerated grounds",
+    prov:"s 26(1), Employment Act 1968", pin:"2025-12-05", src:"statute",
+    runs:{ act19:"insufficient", pdpa2021:"unreviewed", regs2026:"unreviewed", pre:"unreviewed" },
+    span:"You expressly agree that the following deductions may be made by the Employer from your allowance: deductions for absence from work; deductions for damage to or loss of goods expressly entrusted to you; <mark>and such other deductions as are permitted under section 26</mark>.",
+    quote:"In the Employment Act 1968, in section 26, in subsection (1), after paragraph (c), insert — (d) pursuant to a declaration made by a MediShield Life Scheme recovery body under section 12 of the MediShield Life Scheme Act 2015 that the employer is an agent for recovery of any outstanding premium; or (e) pursuant to a declaration made by a CSHL Scheme recovery body under section 24 of the CareShield Life and Long-Term Care Act 2019.",
+    quoteCite:"Statutes (Miscellaneous Amendments) Act 2025, s 7 &middot; in force 5 Dec 2025",
+    why:"The clause enumerates permitted deductions by reference to s 26 as it stood when drafted. Two further lawful grounds were inserted on 5 December 2025. The clause is not wrong about anything it says; it under-states the grounds now available, which is the definition of insufficient rather than contradicted.",
+    del:"and such other deductions as are permitted under section 26.",
+    add:"and such other deductions as are permitted under section 26 of the Employment Act 1968, including recovery declarations made under the MediShield Life Scheme Act 2015 and the CareShield Life and Long-Term Care Act 2019.",
+    prop:"Re-pin the clause to s 26 as at 5 Dec 2025." }
+];
+
+const STATE_LABEL = { contradicted:"Contradicted", insufficient:"Insufficient", stale:"Stale", unreviewed:"Unreviewed" };
+const ORDER = { contradicted:0, insufficient:1, stale:2, unreviewed:3 };
+
+let run = "pdpa2021", docFilter = null, sel = null;
+
+const $ = id => document.getElementById(id);
+const rowsFor = () => L.slice().sort((a,b)=>ORDER[a.runs[run]]-ORDER[b.runs[run]]);
+
+function renderRuns(){
+  $("runs").innerHTML = RUNS.map(r=>`
+    <button class="run" role="button" aria-pressed="${r.id===run}" data-run="${r.id}">
+      <span class="cite">${r.cite}</span>
+      <strong>${r.title}</strong>
+      <em>${r.blurb}</em>
+      <span class="commenced">${r.commenced}</span>
+    </button>`).join("");
+  $("runs").querySelectorAll("[data-run]").forEach(b=>b.onclick=()=>{run=b.dataset.run;sel=null;renderAll();});
+}
+
+function renderDocs(){
+  $("docs").innerHTML = DOCS.map(d=>{
+    const mine = L.filter(x=>x.doc===d.id);
+    const pips = mine.map(x=>`<i class="pip" style="background:var(--${x.runs[run]})"></i>`).join("");
+    return `<button class="doc" aria-pressed="${docFilter===d.id}" data-doc="${d.id}">
+      <span class="doc-id">${d.id}</span>
+      <span class="doc-name">${d.name}</span>
+      <span class="doc-meta">${d.meta}<span class="pips">${pips}</span></span>
+    </button>`;
+  }).join("");
+  $("docs").querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>{
+    docFilter = docFilter===b.dataset.doc ? null : b.dataset.doc; sel=null; renderAll();
+  });
+}
+
+function renderRows(){
+  const all = rowsFor();
+  const open = all.filter(r=>r.runs[run]!=="unreviewed");
+  $("rows").innerHTML = all.map(r=>{
+    const st = r.runs[run];
+    const dim = docFilter && r.doc!==docFilter;
+    return `<tr data-id="${r.id}" class="${dim?"dim":""}" aria-selected="${sel===r.id}">
+      <td class="c-clause"><b>${r.doc} ${r.clause}</b><span>${r.heading}</span></td>
+      <td class="c-oblig"><b>${r.oblig}</b><span>${r.obligSub}</span></td>
+      <td class="c-pin"><span class="pin">${r.prov}<br><i>@ ${r.pin}</i></span><br><span class="srctype">${r.src}</span></td>
+      <td><span class="chip s-${st}">${STATE_LABEL[st]}</span></td>
+    </tr>`;
+  }).join("");
+  $("rows").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{sel=tr.dataset.id;renderRows();renderDetail();});
+  $("ledger-count").textContent = `${open.length} failing / ${all.length} edges`;
+  $("stat-open").textContent = open.length;
+  const cur = RUNS.find(r=>r.id===run);
+  $("ledger-title").textContent = run==="pre" ? "Standing findings" : "Re-run against " + cur.cite;
+  renderCoverage(all);
+}
+
+function renderCoverage(all){
+  const c = {contradicted:0,insufficient:0,stale:0,unreviewed:0};
+  all.forEach(r=>c[r.runs[run]]++);
+  $("covbar").innerHTML = ["contradicted","insufficient","stale","unreviewed"]
+    .map(k=>c[k]?`<i style="background:var(--${k});width:${c[k]/all.length*100}%"></i>`:"").join("");
+}
+
+function renderDetail(){
+  const el = $("detail");
+  if(run==="act19" && !sel){
+    el.innerHTML = `
+      <div class="nil-card">
+        <span class="eyebrow">PDPA &mdash; section 22 of the amending Act</span>
+        <b>0 of 98 edges affected</b>
+        <p>Section 22 deletes one sub-paragraph from the Second Schedule, Part 3, Division 1, paragraph 3 &mdash; disclosure of a <em>patient's</em> data by a licensed healthcare institution. A consequential tidy-up after the Healthcare Services Act licensing transition. No clause in this corpus relies on it.</p>
+      </div>
+      <div class="block">
+        <span class="eyebrow">Employment Act &mdash; section 7 of the same Act</span>
+        <p class="reason">The same instrument, the same commencement date, and a real hit. One salary-deduction clause is now insufficient. Select it in the ledger.</p>
+      </div>
+      <div class="block">
+        <span class="eyebrow">Why this matters</span>
+        <p class="reason">An alerting tool fires twice here, because both Acts changed. This fires once and explains the silence. The difference is that the ledger reasons about provisions, not Acts.</p>
+      </div>`;
+    return;
+  }
+  if(!sel){
+    el.innerHTML = `<p class="empty">Select a row to see the obligation, the document span it binds to, and the proposed patch.</p>`;
+    return;
+  }
+  const r = L.find(x=>x.id===sel), st = r.runs[run];
+  el.innerHTML = `
+    <span class="chip s-${st}">${STATE_LABEL[st]}</span>
+    <h3 style="margin-top:9px">${r.oblig}</h3>
+    <div class="where">${r.doc} ${r.clause} &middot; ${r.heading} &middot; pinned @ ${r.pin}</div>
+
+    <div class="block"><span class="eyebrow">The obligation</span>
+      <blockquote>${r.quote}<cite>${r.quoteCite}</cite></blockquote></div>
+
+    <div class="block"><span class="eyebrow">The document span it binds to</span>
+      <div class="span-quote">${r.span}</div></div>
+
+    <div class="block"><span class="eyebrow">In what way it is affected</span>
+      <p class="reason">${r.why}</p></div>
+
+    <div class="block"><span class="eyebrow">${r.del?"Proposed patch":"Proposed addition"}</span>
+      <div class="diff">
+        ${r.del?`<div class="del">${r.del}</div>`:""}
+        <div class="add">${r.add}</div>
+      </div>
+      <p class="reason" style="margin-top:8px;font-size:12px">${r.prop}</p>
+    </div>
+
+    <div class="acts">
+      <button class="primary">Accept into template</button>
+      <button>Decline</button>
+    </div>`;
+}
+
+function renderAll(){ renderRuns(); renderDocs(); renderRows(); renderDetail(); }
+renderAll();
+</script>

@@ -1,0 +1,346 @@
+<title>Ledger Pitch Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#E9ECEF;--surface:#FFFFFF;--surface-2:#F3F5F8;--sunk:#DDE2E7;
+  --ink:#11151A;--ink-2:#39424D;--muted:#69737E;--faint:#98A1AB;
+  --rule:#CDD3DA;--rule-soft:#E1E5EA;
+  --accent:#1C4A7C;--accent-soft:#E3ECF5;--accent-ink:#163C66;
+  --contradicted:#A31D17;--contradicted-bg:#F8E7E5;
+  --insufficient:#8A560A;--insufficient-bg:#FAEFDC;
+  --stale:#4F4A78;--stale-bg:#EBE9F4;
+  --unreviewed:#6A737D;--unreviewed-bg:#E8EBEE;
+  --nil:#1B6448;--nil-bg:#E2F0EA;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --serif:"IBM Plex Serif",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0C1015;--surface:#141920;--surface-2:#1A212A;--sunk:#090D11;
+  --ink:#E4E9EF;--ink-2:#BCC5D0;--muted:#8B96A2;--faint:#6A7581;
+  --rule:#2A323C;--rule-soft:#212932;
+  --accent:#79AEE4;--accent-soft:#152538;--accent-ink:#A8CBEE;
+  --contradicted:#F0857C;--contradicted-bg:#2E1615;
+  --insufficient:#E0AC5B;--insufficient-bg:#2C2013;
+  --stale:#A9A2D8;--stale-bg:#1F1D2E;
+  --unreviewed:#8C96A1;--unreviewed-bg:#1D232B;
+  --nil:#68C39B;--nil-bg:#12261E;
+}}
+:root[data-theme="dark"]{
+  --paper:#0C1015;--surface:#141920;--surface-2:#1A212A;--sunk:#090D11;
+  --ink:#E4E9EF;--ink-2:#BCC5D0;--muted:#8B96A2;--faint:#6A7581;
+  --rule:#2A323C;--rule-soft:#212932;
+  --accent:#79AEE4;--accent-soft:#152538;--accent-ink:#A8CBEE;
+  --contradicted:#F0857C;--contradicted-bg:#2E1615;
+  --insufficient:#E0AC5B;--insufficient-bg:#2C2013;
+  --stale:#A9A2D8;--stale-bg:#1F1D2E;
+  --unreviewed:#8C96A1;--unreviewed-bg:#1D232B;
+  --nil:#68C39B;--nil-bg:#12261E;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:500}
+
+.deck{max-width:1180px;margin:0 auto;padding:22px 22px 90px}
+.slide{background:var(--surface);border:1px solid var(--rule);padding:46px 52px;min-height:600px;
+  display:flex;flex-direction:column;gap:22px}
+.slide[hidden]{display:none}
+.slide-hd{display:flex;align-items:baseline;justify-content:space-between;gap:20px;
+  padding-bottom:14px;border-bottom:1px solid var(--rule-soft)}
+h2{margin:0;font-size:31px;font-weight:600;letter-spacing:-.02em;line-height:1.18;text-wrap:balance;max-width:20ch}
+.lede{font-size:18px;line-height:1.5;color:var(--ink-2);max-width:64ch;margin:0}
+.lede b{color:var(--ink);font-weight:600}
+p{margin:0 0 .8em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* title slide */
+.title{justify-content:center;gap:0}
+.title .eyebrow{margin-bottom:20px}
+.title h1{margin:0;font-size:60px;font-weight:600;letter-spacing:-.035em;line-height:1.02;text-wrap:balance}
+.title .thesis{margin-top:22px;font-family:var(--serif);font-size:21px;line-height:1.55;color:var(--ink-2);max-width:52ch}
+.title .foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule-soft);
+  display:flex;gap:34px;flex-wrap:wrap}
+.title .foot div b{display:block;font-family:var(--mono);font-size:17px;font-weight:500}
+
+/* quotes & documents */
+.doccard{background:var(--surface-2);border:1px solid var(--rule-soft);border-left:3px solid var(--rule);padding:15px 18px}
+.doccard .eyebrow{display:block;margin-bottom:7px}
+.doccard q{display:block;font-family:var(--serif);font-size:15.5px;line-height:1.6;color:var(--ink-2);quotes:none}
+.doccard mark{background:var(--insufficient-bg);color:var(--insufficient);padding:0 2px;
+  box-shadow:inset 0 -1.5px 0 var(--insufficient)}
+.doccard mark.bad{background:var(--contradicted-bg);color:var(--contradicted);box-shadow:inset 0 -1.5px 0 var(--contradicted)}
+.doccard .verdict{margin-top:11px;padding-top:9px;border-top:1px solid var(--rule-soft);font-size:13.5px;color:var(--muted)}
+.statute{background:var(--accent-soft);border-left:3px solid var(--accent);padding:15px 18px}
+.statute q{display:block;font-family:var(--serif);font-size:15px;line-height:1.6;color:var(--ink-2);quotes:none}
+.statute cite{display:block;margin-top:9px;font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--accent-ink)}
+
+/* state chips */
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid transparent;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;flex:none}
+.s-contradicted{color:var(--contradicted);background:var(--contradicted-bg);border-color:var(--contradicted)}
+.s-contradicted::before{background:var(--contradicted)}
+.s-insufficient{color:var(--insufficient);background:var(--insufficient-bg);border-color:var(--insufficient)}
+.s-insufficient::before{background:var(--insufficient)}
+.s-stale{color:var(--stale);background:var(--stale-bg);border-color:var(--stale)}
+.s-stale::before{background:var(--stale)}
+.s-unreviewed{color:var(--unreviewed);background:var(--unreviewed-bg);border:1px dashed var(--rule)}
+.s-unreviewed::before{background:var(--unreviewed);border-radius:50%}
+.statecard{border:1px solid var(--rule-soft);padding:13px 15px;background:var(--surface-2)}
+.statecard p{margin:9px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+
+/* ledger edge diagram */
+.edge{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:12px;
+  background:var(--surface-2);border:1px solid var(--rule-soft);padding:18px}
+.edge .node{padding:11px 13px;background:var(--surface);border:1px solid var(--rule)}
+.edge .node .eyebrow{display:block;margin-bottom:4px}
+.edge .node b{font-family:var(--mono);font-size:13px;font-weight:500;display:block}
+.edge .node span{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.edge .arr{font-family:var(--mono);color:var(--accent);font-size:17px}
+@media(max-width:860px){.edge{grid-template-columns:1fr;gap:8px}.edge .arr{transform:rotate(90deg)}}
+
+/* null result */
+.nil{background:var(--nil-bg);border:1px solid var(--nil);border-left:4px solid var(--nil);padding:22px 26px}
+.nil b{display:block;font-family:var(--mono);font-size:44px;font-weight:500;color:var(--nil);line-height:1;letter-spacing:-.02em}
+.nil .eyebrow{display:block;margin-bottom:9px}
+.nil p{margin:12px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+.hit{background:var(--insufficient-bg);border:1px solid var(--insufficient);border-left:4px solid var(--insufficient);padding:22px 26px}
+.hit b{display:block;font-family:var(--mono);font-size:44px;font-weight:500;color:var(--insufficient);line-height:1;letter-spacing:-.02em}
+.hit .eyebrow{display:block;margin-bottom:9px}
+.hit p{margin:12px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+
+/* lists */
+ul.clean{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+ul.clean li{padding-left:23px;position:relative;font-size:15px;line-height:1.55;color:var(--ink-2)}
+ul.clean li::before{content:"";position:absolute;left:0;top:.55em;width:9px;height:1.5px;background:var(--accent)}
+ul.clean li b{color:var(--ink);font-weight:600}
+.pill{display:inline-block;font-family:var(--mono);font-size:11.5px;padding:2px 8px;background:var(--surface-2);
+  border:1px solid var(--rule);color:var(--ink-2);margin-right:5px}
+
+/* three-way split */
+.split{border:1px solid var(--rule-soft);padding:15px;background:var(--surface-2)}
+.split .eyebrow{display:block;margin-bottom:7px}
+.split b{display:block;font-size:15px;font-weight:600;margin-bottom:5px}
+.split p{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+
+/* chrome */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--rule);
+  display:flex;align-items:center;gap:16px;padding:9px 22px;z-index:9}
+.bar .prog{flex:1;display:flex;gap:3px}
+.bar .prog i{flex:1;height:3px;background:var(--sunk);cursor:pointer}
+.bar .prog i.on{background:var(--accent)}
+.bar .prog i.done{background:var(--rule)}
+.bar button{padding:5px 13px;background:var(--surface);border:1px solid var(--rule);font-size:13px}
+.bar button:hover{border-color:var(--accent);color:var(--accent-ink)}
+.counter{font-family:var(--mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.timing{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);
+  padding:3px 9px;border:1px solid var(--rule-soft);white-space:nowrap}
+.hint{font-size:12px;color:var(--faint)}
+@media(max-width:700px){.hint{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide title">
+  <span class="eyebrow">SMU LIT Hackathon &middot; Designing a Sustainable and Resilient LegalTech</span>
+  <h1>Clause Dependency Ledger</h1>
+  <p class="thesis">Every clause in a firm&rsquo;s corpus is bound to the statutory provision it silently relies on &mdash; a dependency the document never declared, and no system has ever recorded.</p>
+  <div class="foot">
+    <div><span class="eyebrow">Corpus</span><b>5 documents &middot; 98 edges</b></div>
+    <div><span class="eyebrow">Regulation</span><b>Singapore PDPA</b></div>
+    <div><span class="eyebrow">Deployment</span><b>On-premises</b></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>Nobody was unaware</h2><span class="eyebrow">the gap is not alerting</span></div>
+  <p class="lede">Singapore publishes provision-level legislative change as a <b>free machine-readable feed</b>. The Employment Act feed alone carries 667 provision records. Every firm can already see what changed.</p>
+  <div class="grid2">
+    <div class="doccard">
+      <span class="eyebrow">Signed April 2026 &middot; still in force</span>
+      <q>You hereby <mark class="bad">consent</mark> to the Employer collecting, using, processing and/or disclosing any or all personal data relevant to your internship&hellip;</q>
+      <div class="verdict">Consent stopped being the right instrument on <b>1 February 2021</b>. Five years of signatures later, the clause is unchanged.</div>
+    </div>
+    <div class="doccard">
+      <span class="eyebrow">The check that needs no model</span>
+      <q>Roman-numeral PDPA Part references &mdash; <mark>&ldquo;Parts III to VI&rdquo;</mark> &mdash; and citations into ss 27&ndash;35.</q>
+      <div class="verdict">The Act was renumbered to Arabic in the 2020 Revised Edition and those sections were repealed. <b>The numerals alone date a document as pre-2021.</b> Regex, not reasoning.</div>
+    </div>
+  </div>
+  <p class="lede">The gap was never awareness. <b>Nothing connected the amendment to these files.</b></p>
+</section>
+
+<!-- 3 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>The edge nobody keeps</h2><span class="eyebrow">the invention</span></div>
+  <p class="lede">No document in this corpus ever cited a statute. We infer the dependency, pin it to the provision version it was drafted against, and <b>keep it</b>.</p>
+  <div class="edge">
+    <div class="node"><span class="eyebrow">Clause</span><b>DOC-001 cl 14</b><span>Personal data protection</span></div>
+    <div class="arr">&rarr;</div>
+    <div class="node"><span class="eyebrow">Obligation</span><b>Transfer limitation</b><span>Legally enforceable obligations abroad</span></div>
+    <div class="arr">&rarr;</div>
+    <div class="node"><span class="eyebrow">Pinned to</span><b>reg 11 @ 2021-02-01</b><span>statute &middot; version-pinned</span></div>
+  </div>
+  <ul class="clean">
+    <li><b>Discovered, not entered.</b> Every incumbent requires this edge to pre-exist as human data entry. This one is inferred from documents that never declared it.</li>
+    <li><b>It persists, so it compounds.</b> The hundredth amendment costs a fraction of the first, because the edges are already there. That is the difference between a tool and an asset.</li>
+    <li><b>Only on-premises makes it possible.</b> No vendor is permitted to index a firm&rsquo;s whole cross-client corpus. That is why this gap is still open.</li>
+  </ul>
+</section>
+
+<!-- 4 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>Four states, and no fifth</h2><span class="eyebrow">in what way it is affected</span></div>
+  <p class="lede">A finding is an enum, a statutory quote and a document span. Prose is secondary. <b>There is no compliant state</b> &mdash; the ledger cannot represent a clause as safe.</p>
+  <div class="grid2">
+    <div class="statecard"><span class="chip s-contradicted">Contradicted</span>
+      <p>The clause routes the statutory access channel to a <em>department</em>. Section 11(3) requires a designated <em>individual</em>, and s 11(5) requires publishing their contact information.</p></div>
+    <div class="statecard"><span class="chip s-insufficient">Insufficient</span>
+      <p>Cross-border transfer promises &ldquo;reasonable steps&rdquo;. Regulation 11 admits four routes, and reasonable steps is none of them. True, but no longer enough.</p></div>
+    <div class="statecard"><span class="chip s-stale">Stale</span>
+      <p>Built on consent when the employment exception has been available since 2021. Worse than cosmetic: a consent can be withdrawn under s 16, the exception cannot.</p></div>
+    <div class="statecard"><span class="chip s-unreviewed">Unreviewed</span>
+      <p>No edge has been assessed against this provision. Reported as a count, never as reassurance. <b>Silence is not evidence of compliance.</b></p></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>Same rule, different failure</h2><span class="eyebrow">why one patch is the wrong patch</span></div>
+  <p class="lede">Regulation 11 hits two documents. A tool that proposed the same edit to both would be <b>wrong</b>.</p>
+  <div class="grid2">
+    <div class="doccard">
+      <span class="eyebrow">DOC-001 &middot; eyewear group</span>
+      <q>the Employer will take <mark>reasonable steps</mark> to ensure your personal data continues to receive a standard of protection comparable to that under the Act.</q>
+      <div class="verdict">Weak on transfer. <b>Strong nowhere else either</b> &mdash; no enumerated purposes, no contact point. Remedy: rebuild on binding corporate rules naming destination countries.</div>
+    </div>
+    <div class="doccard">
+      <span class="eyebrow">DOC-002 &middot; consultancy</span>
+      <q>where the transfer of data outside Singapore is involved, <mark>appropriate measures</mark> are taken to ensure that adequate safeguards are in place.</q>
+      <div class="verdict"><b>Stronger on notification</b> &mdash; purposes in-line, an annex of data types and recipients. Remedy: leave the notification limb alone, replace only the transfer limb.</div>
+    </div>
+  </div>
+  <div class="statute"><q>An organisation must, before transferring personal data outside Singapore, take appropriate steps to ensure that the recipient is bound by legally enforceable obligations to provide a standard of protection comparable to that under the Act.</q><cite>PDP Regulations 2021, reg 11 &middot; sso.agc.gov.sg</cite></div>
+</section>
+
+<!-- 6 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>One instrument. Two answers.</h2><span class="eyebrow">the null result</span></div>
+  <p class="lede"><span class="pill">Act 19 of 2025</span> Statutes (Miscellaneous Amendments) Act &mdash; one commencement date, <b>5 December 2025</b>, amending both Acts this corpus depends on.</p>
+  <div class="grid2">
+    <div class="nil">
+      <span class="eyebrow">PDPA &middot; section 22 of the amending Act</span>
+      <b>0 affected</b>
+      <p>Deletes one sub-paragraph on disclosure of a <em>patient&rsquo;s</em> data by a licensed healthcare institution. A tidy-up after the Healthcare Services Act transition. No clause here relies on it.</p>
+    </div>
+    <div class="hit">
+      <span class="eyebrow">Employment Act &middot; section 7 of the same Act</span>
+      <b>1 insufficient</b>
+      <p>Inserts two further lawful grounds for salary deduction, under the MediShield Life and CareShield Life schemes. The deductions clause under-states the grounds now available.</p>
+    </div>
+  </div>
+  <p class="lede">An alerting tool fires twice here. <b>This fires once, and explains the silence.</b> The difference is that we reason about provisions, not Acts.</p>
+</section>
+
+<!-- 7 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>The practice nobody wrote down</h2><span class="eyebrow">accumulated working practices</span></div>
+  <p class="lede">The brief&rsquo;s hardest clause. Habits live in no system &mdash; but they leave <b>fingerprints across the corpus</b>.</p>
+  <div class="doccard">
+    <span class="eyebrow">One edge, four documents</span>
+    <q>Both confidentiality clauses impose a comprehensive duty of silence and create <mark>no internal reporting route</mark>.</q>
+    <div class="verdict">Section 26D(1) gives three calendar days from assessment to notify the Commission. Assessment happens because a member of staff escalates. <b>An intern who notices a breach is contractually instructed to keep quiet.</b> Compliance with a statutory deadline depends on a path the contract never builds.</div>
+  </div>
+  <ul class="clean">
+    <li>The ledger found it <b>by the edge, not the wording</b> &mdash; four documents, four different drafters, one shared assumption.</li>
+    <li>It is in no playbook, no checklist and no training material. It is a habit, and this is what a habit looks like when you can finally see it.</li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>Propagate, carefully</h2><span class="eyebrow">before the outdated version causes harm</span></div>
+  <p class="lede">A signed contract is not a text file. Varying it is a legal act requiring the counterparty. <b>The artefact type decides what propagation even means.</b></p>
+  <div class="grid3">
+    <div class="split"><span class="eyebrow">Executed</span><b>Risk register</b><p>Cannot be edited unilaterally. It becomes a logged exposure with a remediation owner, surfaced at renewal.</p></div>
+    <div class="split"><span class="eyebrow">Template</span><b>Redline</b><p>The highest-leverage fix. Patching the precedent fixes every unwritten future document; patching a signed contract fixes one.</p></div>
+    <div class="split"><span class="eyebrow">Draft</span><b>Block</b><p>Caught before execution. This is the only point where the harm is genuinely prevented rather than recorded.</p></div>
+  </div>
+  <ul class="clean">
+    <li><b>A lawyer accepts or declines every edit.</b> The diff is the unit of review, and the acceptance is the audit record.</li>
+    <li><b>Coverage is reported, not implied.</b> Mapped obligations and unmapped ones are both counted, on screen.</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>What we will not claim</h2><span class="eyebrow">constraints, stated as confidence</span></div>
+  <ul class="clean">
+    <li><b>Singapore Statutes Online is not authoritative.</b> The Gazette is. We pin to SSO because it is versioned and free, and we say so.</li>
+    <li><b>Guidance cannot be version-pinned.</b> The PDPC does not version its advisory guidelines &mdash; the NRIC guidelines still read &ldquo;last updated 31 August 2018&rdquo; while the policy moved through advisories. A statutory assertion can be <em>proved</em> stale. A guidance assertion can only be <em>flagged unverifiable</em>. We record which is which.</li>
+    <li><b>The assertions are hand-authored, by design.</b> A model never writes an obligation. It proposes edges and drafts language; the rule itself is human, versioned and reviewable.</li>
+    <li><b>The model cannot say &ldquo;compliant&rdquo;.</b> Not because we filtered it out, but because the finding type has no such value. The catastrophic failure is <em>structurally unrepresentable</em>.</li>
+  </ul>
+</section>
+
+<!-- 10 -->
+<section class="slide" hidden>
+  <div class="slide-hd"><h2>Resilient, not responsive</h2><span class="eyebrow">the question, answered</span></div>
+  <div class="grid3">
+    <div class="split"><span class="eyebrow">Identify</span><b>What is affected</b><p>Persisted clause-to-provision edges, re-run only where the amended provision touches.</p></div>
+    <div class="split"><span class="eyebrow">Understand</span><b>In what way</b><p>Contradicted, insufficient or stale &mdash; with the statutory quote and the document span that failed.</p></div>
+    <div class="split"><span class="eyebrow">Propagate</span><b>Before harm</b><p>Redline the template, block the draft, register the executed contract. Every edit accepted by a lawyer.</p></div>
+  </div>
+  <p class="lede">Horizon scanning tells a firm the law moved. <b>The ledger tells it which of its own words are now wrong</b> &mdash; and it keeps knowing, because the edges outlive the amendment that discovered them.</p>
+  <div class="statute"><q>Uncommenced legislation is published and browsable. The same ledger run against law that is gazetted but not yet in force computes blast radius <em>before</em> the rule ever applies.</q><cite>One extra column: commencement_date &middot; that is the whole difference between responsive and resilient</cite></div>
+</section>
+
+</div>
+
+<div class="bar">
+  <button id="prev">&larr; Prev</button>
+  <button id="next">Next &rarr;</button>
+  <span class="counter" id="counter">1 / 10</span>
+  <span class="timing" id="timing">0:00</span>
+  <div class="prog" id="prog"></div>
+  <span class="hint">&larr; &rarr; or space &middot; F for fullscreen</span>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll(".slide")];
+const CUES=["0:00","0:15","0:50","1:20","1:45","2:10","2:40","3:05","3:25","3:40"];
+let i=0;
+const prog=document.getElementById("prog");
+prog.innerHTML=slides.map((_,n)=>`<i data-n="${n}"></i>`).join("");
+prog.querySelectorAll("i").forEach(el=>el.onclick=()=>go(+el.dataset.n));
+
+function go(n){
+  i=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,k)=>s.hidden=k!==i);
+  document.getElementById("counter").textContent=`${i+1} / ${slides.length}`;
+  document.getElementById("timing").textContent=CUES[i];
+  prog.querySelectorAll("i").forEach((el,k)=>{
+    el.className = k===i?"on":(k<i?"done":"");
+  });
+  window.scrollTo({top:0,behavior:"instant"});
+}
+document.getElementById("next").onclick=()=>go(i+1);
+document.getElementById("prev").onclick=()=>go(i-1);
+addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){e.preventDefault();go(i+1);}
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();go(i-1);}
+  else if(e.key==="Home"){go(0);} else if(e.key==="End"){go(slides.length-1);}
+  else if(e.key==="f"||e.key==="F"){
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.();
+  }
+});
+go(0);
+</script>
