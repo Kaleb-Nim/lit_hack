@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PearsonHeader } from "@/components/pearson-header";
 import { contractMatchesRegulation, regulationById, type RegulationId } from "@/lib/regulatory-workspace";
 
-type Contract = { id: string; key: string; name: string; size: number; lastModified: string; downloadUrl: string; format: string; editable: boolean };
+type Contract = { id: string; key: string; name: string; size: number; lastModified: string; downloadUrl: string; format: string; editable: boolean; convertible: boolean };
 
 export function ContractLibrary({ initialRegulation }: { initialRegulation: RegulationId }) {
   const [regulationId, setRegulationId] = useState<RegulationId>(initialRegulation);
@@ -36,7 +36,7 @@ export function ContractLibrary({ initialRegulation }: { initialRegulation: Regu
     <PearsonHeader kicker="Contract library" title={regulation.shortName} meta={regulation.title} actions={<Link href="/" className="btn btn--outline-light">← Main workspace</Link>} />
     <main className="contracts-page">
       <div className="contracts-page__head">
-        <div><span className="eyebrow">R2 source library</span><h1>Affected contracts</h1><p>Select a `.docx` file to edit a browser-only working copy. Source objects are read-only.</p></div>
+        <div><span className="eyebrow">R2 source library</span><h1>Affected contracts</h1><p>Open Word files directly or convert PDFs into editable working copies with AI drafting suggestions. Source objects are read-only.</p></div>
         <div className="source-lock"><ShieldCheck size={17} /><span><strong>No write-back</strong>Downloads create a new local file</span></div>
       </div>
       <div className="contracts-toolbar">
@@ -51,17 +51,18 @@ export function ContractLibrary({ initialRegulation }: { initialRegulation: Regu
         {state === "loading" && <div className="contracts-message"><LoaderCircle className="spin" size={18} />Loading directly from R2</div>}
         {state === "error" && <div className="contracts-message">The contract library could not be loaded. Check the read-only R2 credentials.</div>}
         {state === "ready" && visible.map((contract) => {
-          const href = contract.editable ? `/contracts/${contract.key.split("/").map(encodeURIComponent).join("/")}?regulation=${regulationId}` : contract.downloadUrl;
+          const workbench = contract.editable || contract.convertible;
+          const href = workbench ? `/contracts/${contract.key.split("/").map(encodeURIComponent).join("/")}?regulation=${regulationId}` : contract.downloadUrl;
           return <article className="contract-row" key={contract.key}>
             <span className="contract-row__doc"><i><FileText size={16} /></i><span><strong>{contract.name}</strong><small>{contract.key}</small></span></span>
             <span><b className={`format-badge format-badge--${contract.format}`}>{contract.format.toUpperCase()}</b><small>{(contract.size / 1024).toFixed(0)} KB</small></span>
             <time>{contract.lastModified ? new Date(contract.lastModified).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" }) : "—"}</time>
-            <Link href={href} target={contract.editable ? undefined : "_blank"} className={contract.editable ? "btn btn--gold" : "btn btn--ghost"}>{contract.editable ? "Edit working copy" : <>Open original <ExternalLink size={13} /></>}</Link>
+            <Link href={href} target={workbench ? undefined : "_blank"} className={workbench ? "btn btn--gold" : "btn btn--ghost"}>{contract.editable ? "Review and edit" : contract.convertible ? "Convert and review" : <>Open original <ExternalLink size={13} /></>}</Link>
           </article>;
         })}
         {state === "ready" && visible.length === 0 && <div className="contracts-message">No contracts match this regulation and search.</div>}
       </section>
-      <p className="contracts-footnote"><Cloud size={13} />Source: configured Cloudflare R2 bucket · `.docx` is editable · `.doc` and PDF remain source-only</p>
+      <p className="contracts-footnote"><Cloud size={13} />Source: configured Cloudflare R2 bucket · `.docx` is editable · PDF converts to a new Word copy · legacy `.doc` remains source-only</p>
     </main>
   </div>;
 }

@@ -3,6 +3,8 @@ import { DownloadButton } from "@/app/download-button";
 import { PearsonHeader } from "@/components/pearson-header";
 import type { DocModel } from "@/lib/docx-model";
 import { regulationById } from "@/lib/regulatory-workspace";
+import { SummaryDocumentFilter } from "@/app/components/summary-document-filter";
+import { LegislativeLifecycle } from "@/app/components/legislative-lifecycle";
 import "../../summary.css";
 
 const wfa = regulationById("WFA2025");
@@ -38,9 +40,11 @@ export default function WorkplaceFairnessPage() {
     <main className="shell__main"><div className="summary"><div className="summary__col">
       <section className="hero"><div className="hero__row"><span className="hero__tag">Readiness horizon</span><span className="hero__gazette">Act 8 of 2025 · uncommenced as at 6 Sep 2026</span><span className="hero__position">4 readiness areas</span></div><div className="hero__jurisdiction">Singapore · Employment</div><h1 className="hero__title">Workplace Fairness Act 2025</h1><p className="hero__lede">The Act is real and passed, but not yet in force. Pearson separates future-readiness work from current legal obligations so the team can prepare contracts without creating false breach findings.</p></section>
       <section className="card exec"><div className="eyebrow">Executive summary</div><p className="exec__para">The Act establishes protections against workplace discrimination in hiring, during employment, and in dismissal, retrenchment or termination. It also covers discriminatory directions, policies and advertisements.</p><p className="exec__para">Part 6 adds fair consideration, grievance-handling and anti-retaliation requirements. Current templates can be reviewed now, with every proposed change labelled as readiness work until commencement.</p><div className="exec__foot"><span className="exec__prepared">Verified against the official uncommenced Act on Singapore Statutes Online</span><a href={wfa.sourceUrl} target="_blank" rel="noreferrer" className="btn btn--ghost">Open official text</a></div></section>
+      <LegislativeLifecycle events={wfa.lifecycle} />
       <div className="cta"><Link href="/contracts?regulation=WFA2025" className="cta__main"><span className="cta__text"><span className="cta__title">Review employment documents</span><span className="cta__blurb">Open matching R2 contracts. Editable `.docx` files become local working copies; source files remain untouched.</span></span><span className="cta__right"><span className="cta__count">WFA</span><span className="cta__pill">Open contracts →</span></span></Link></div>
       <div className="legend"><h2 className="legend__title" style={{margin:0}}>Readiness areas</h2><span className="legend__sub">Preparation only until commencement</span></div>
       {readiness.map((item) => <article className="card ob ob--action" key={item.ref}><span className="ob__bar"/><div className="ob__body"><div className="ob__head"><span className="eyebrow">{item.ref}</span><span className="chip ob__sev">Readiness review</span><span className="ob__deadline">Uncommenced</span></div><h2 className="ob__title">{item.title}</h2><div className="ob__grid"><div className="ob__col ob__col--action"><div className="eyebrow">Action</div><p>{item.action}</p></div><div className="ob__col ob__col--what"><div className="eyebrow">Why it matters</div><p>{item.why}</p></div></div><div className="ob__foot"><Link href="/contracts?regulation=WFA2025" className="ob__docs">Review matching contracts →</Link></div></div></article>)}
+      <SummaryDocumentFilter regulationId="WFA2025" />
     </div></div></main>
   </div>;
 }

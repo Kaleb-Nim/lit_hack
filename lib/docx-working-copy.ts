@@ -29,7 +29,7 @@ export async function readDocxParagraphs(source: ArrayBuffer): Promise<EditableP
   return wordParagraphs(document).map((paragraph, index) => ({ index, text: textNodes(paragraph).map((node) => node.textContent ?? "").join("") })).filter((paragraph) => paragraph.text.trim().length > 0);
 }
 
-export async function buildWorkingCopy(source: ArrayBuffer, edits: Map<number, string>) {
+export async function buildWorkingCopy(source: ArrayBuffer, edits: Map<number, string>, insertions: string[] = []) {
   const zip = await JSZip.loadAsync(source);
   const part = zip.file("word/document.xml");
   if (!part) throw new Error("This file is not a supported Word document.");
@@ -41,6 +41,19 @@ export async function buildWorkingCopy(source: ArrayBuffer, edits: Map<number, s
     nodes[0].textContent = value;
     nodes[0].setAttributeNS(XML_NS, "xml:space", "preserve");
     nodes.slice(1).forEach((node) => { node.textContent = ""; });
+  });
+  const body = document.getElementsByTagNameNS(WORD_NS, "body")[0];
+  const sectionProperties = body?.getElementsByTagNameNS(WORD_NS, "sectPr")[0];
+  insertions.filter((value) => value.trim()).forEach((value) => {
+    const paragraph = document.createElementNS(WORD_NS, "w:p");
+    const run = document.createElementNS(WORD_NS, "w:r");
+    const text = document.createElementNS(WORD_NS, "w:t");
+    text.setAttributeNS(XML_NS, "xml:space", "preserve");
+    text.textContent = value;
+    run.appendChild(text);
+    paragraph.appendChild(run);
+    if (sectionProperties) body.insertBefore(paragraph, sectionProperties);
+    else body?.appendChild(paragraph);
   });
   zip.file("word/document.xml", new XMLSerializer().serializeToString(document));
   return zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", compression: "DEFLATE" });

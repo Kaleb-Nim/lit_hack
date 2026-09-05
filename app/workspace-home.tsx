@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, BookOpen, CheckCircle2, Cloud, ExternalLink, FileText, LoaderCircle, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Cloud, ExternalLink, FilePlus2, FileText, LoaderCircle, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PearsonHeader } from "@/components/pearson-header";
@@ -15,13 +15,17 @@ type Contract = {
   downloadUrl: string;
   format: string;
   editable: boolean;
+  convertible: boolean;
 };
+
+type IntakeRecord = { id: string; title: string; shortName: string; legalStatus: string; statusAsAt: string; summary: string; sources: Array<{ url: string }> };
 
 export function WorkspaceHome() {
   const [selected, setSelected] = useState<RegulationId>("PDPA2012");
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [query, setQuery] = useState("");
+  const [intake, setIntake] = useState<IntakeRecord[]>([]);
   const regulation = WORKSPACE_REGULATIONS.find((item) => item.id === selected)!;
 
   useEffect(() => {
@@ -39,6 +43,13 @@ export function WorkspaceHome() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    fetch("/api/regulations/intake", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : { records: [] })
+      .then((body: { records?: IntakeRecord[] }) => setIntake(body.records ?? []))
+      .catch(() => setIntake([]));
+  }, []);
+
   const matching = useMemo(
     () => contracts
       .filter((contract) => contractMatchesRegulation(contract.key, selected))
@@ -53,7 +64,7 @@ export function WorkspaceHome() {
         kicker="Regulatory workspace"
         title="Singapore legal operations"
         meta="Shared matter intelligence"
-        actions={<Link href="/resilience" className="btn btn--outline-light">Dependency map</Link>}
+        actions={<><Link href="/regulations/new" className="btn btn--outline-light"><FilePlus2 size={14} />Add law change</Link><Link href="/resilience" className="btn btn--outline-light">Dependency map</Link></>}
       />
       <main className="workspace">
         <section className="workspace__intro">
@@ -66,9 +77,9 @@ export function WorkspaceHome() {
         </section>
 
         <section className="regulation-switcher" aria-label="Tracked regulations">
-          {WORKSPACE_REGULATIONS.map((item) => (
+          {WORKSPACE_REGULATIONS.map((item, index) => (
             <button key={item.id} className={`regulation-tile${selected === item.id ? " active" : ""}`} onClick={() => setSelected(item.id)} aria-pressed={selected === item.id}>
-              <span className="regulation-tile__top"><span className="regulation-tile__code">{item.shortName}</span><span className={`law-state law-state--${item.status.toLowerCase()}`}>{item.status}</span></span>
+              <span className="regulation-tile__top"><span className="regulation-tile__code">CASE {String(index + 1).padStart(2, "0")} · {item.shortName}</span><span className={`law-state law-state--${item.status.toLowerCase()}`}>{item.status}</span></span>
               <strong>{item.title}</strong>
               <small>{item.statusDetail}</small>
               <span className="regulation-tile__open">Open workspace <ArrowRight size={14} /></span>
@@ -105,16 +116,25 @@ export function WorkspaceHome() {
               {state === "loading" && <div className="workspace-empty"><LoaderCircle className="spin" size={18} />Loading contracts from R2</div>}
               {state === "error" && <div className="workspace-empty">The R2 contract library could not be loaded.</div>}
               {state === "ready" && matching.slice(0, 6).map((contract) => (
-                <Link key={contract.key} href={contract.editable ? `/contracts/${contract.key.split("/").map(encodeURIComponent).join("/")}?regulation=${selected}` : contract.downloadUrl} target={contract.editable ? undefined : "_blank"} className="contract-snapshot__row">
+                <Link key={contract.key} href={contract.editable || contract.convertible ? `/contracts/${contract.key.split("/").map(encodeURIComponent).join("/")}?regulation=${selected}` : contract.downloadUrl} target={contract.editable || contract.convertible ? undefined : "_blank"} className="contract-snapshot__row">
                   <span className="file-glyph"><FileText size={15} /></span><span><strong>{contract.name}</strong><small>{contract.format.toUpperCase()} · {(contract.size / 1024).toFixed(0)} KB</small></span>
-                  <em>{contract.editable ? "Edit copy" : "View original"}</em>
+                  <em>{contract.editable ? "Review & edit" : contract.convertible ? "Convert PDF" : "View original"}</em>
                 </Link>
               ))}
               {state === "ready" && matching.length === 0 && <div className="workspace-empty">No contracts match this regulation and search.</div>}
             </div>
             <Link href={regulation.contractQuery} className="contract-snapshot__all">Open all matching contracts <ArrowRight size={14} /></Link>
-            <p className="contract-snapshot__note"><CheckCircle2 size={13} />Only `.docx` files can be edited in-browser. PDFs and legacy `.doc` files remain source-only.</p>
+            <p className="contract-snapshot__note"><CheckCircle2 size={13} />DOCX files edit directly. PDFs become text-first Word working copies; legacy `.doc` files remain source-only.</p>
           </aside>
+        </section>
+
+        <section className="intake-lane">
+          <div><span className="eyebrow">Reviewed team intake</span><h2>Additional law changes</h2><p>AI research appears here only after a lawyer confirms the official-source draft.</p></div>
+          <div className="intake-lane__records">
+            {intake.slice(0, 3).map((record) => <article key={record.id}><span>{record.shortName}</span><div><strong>{record.title}</strong><small>{record.legalStatus} · position as at {record.statusAsAt} · {record.sources.length} official source{record.sources.length === 1 ? "" : "s"}</small></div></article>)}
+            {intake.length === 0 && <p>No additional changes have been confirmed.</p>}
+          </div>
+          <Link href="/regulations/new" className="btn btn--navy"><FilePlus2 size={15} />Research a law change</Link>
         </section>
       </main>
     </div>

@@ -1,4 +1,5 @@
 import { getR2Object, listR2Objects } from "@/lib/r2";
+import { inferCompany, inferDocumentType, type ContractDocumentType } from "@/lib/contract-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ type ContractManifestItem = {
   updatedRequirement?: string;
   reason?: string;
   status?: "Outdated" | "Needs Review" | "Still Valid" | "Validated";
+  company?: string;
+  documentType?: ContractDocumentType;
 };
 
 const supportedExtensions = new Set(["pdf", "doc", "docx", "txt", "md", "json"]);
@@ -52,6 +55,9 @@ export async function GET() {
           lastModified: object.lastModified,
           format,
           editable: format === "docx",
+          convertible: format === "pdf",
+          company: metadata?.company?.trim() || inferCompany(object.key, metadata?.name ?? titleFromKey(object.key)),
+          documentType: metadata?.documentType ?? inferDocumentType(object.key, metadata?.name ?? titleFromKey(object.key)),
           downloadUrl: `/api/contracts/${object.key.split("/").map(encodeURIComponent).join("/")}`,
         };
       });

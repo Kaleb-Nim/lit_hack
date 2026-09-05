@@ -9,7 +9,12 @@ import {
 } from "@/lib/pdpa/data";
 import type { DocBlock, DocModel } from "@/lib/docx-model";
 import { DownloadButton } from "@/app/download-button";
+import { SummaryDocumentFilter } from "@/app/components/summary-document-filter";
+import { LegislativeLifecycle } from "@/app/components/legislative-lifecycle";
+import { regulationById } from "@/lib/regulatory-workspace";
 import "../../summary.css";
+
+const pdpaWorkspace = regulationById("PDPA2012");
 
 /* ── Word memos ─────────────────────────────────────────────────── */
 
@@ -128,6 +133,8 @@ export default function SummaryPage() {
               </div>
             </section>
 
+            <LegislativeLifecycle events={pdpaWorkspace.lifecycle} />
+
             {/* Primary call to action */}
             <div className="cta">
               <Link href="/contracts?regulation=PDPA2012" className="cta__main">
@@ -167,6 +174,7 @@ export default function SummaryPage() {
             {OBLIGATIONS.map((o) => (
               <ObligationCard key={o.id} obligation={o} />
             ))}
+            <SummaryDocumentFilter regulationId="PDPA2012" />
           </div>
         </div>
       </main>

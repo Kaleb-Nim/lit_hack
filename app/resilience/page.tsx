@@ -1,14 +1,15 @@
 "use client";
 
-import { Activity, ArrowRight, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, Sparkles, TimerReset, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RegulationLibrary } from "@/app/components/regulation-library";
+import { TopDownContractGraph } from "@/app/resilience/top-down-contract-graph";
 
 type NodeKind = "regulation" | "obligation" | "document" | "workflow";
 type AssetStatus = "Outdated" | "Needs Review" | "Still Valid" | "Validated";
 type GraphNode = { id: string; label: string; sublabel: string; kind: NodeKind; x: number; y: number; affected?: boolean; section?: string; status?: AssetStatus; version?: string };
-type R2Contract = { id: string; key: string; name: string; section: string; dependency: string; currentAssumption: string; updatedRequirement: string; reason: string; status: AssetStatus; size: number; lastModified: string; downloadUrl: string };
+type R2Contract = { id: string; key: string; name: string; section: string; dependency: string; currentAssumption: string; updatedRequirement: string; reason: string; status: AssetStatus; size: number; lastModified: string; downloadUrl: string; format?: string; company?: string; documentType?: string };
 
 const nodes: GraphNode[] = [
   { id: "act", label: "Personal Data Protection Act 2012", sublabel: "Official source", kind: "regulation", x: 8, y: 18, version: "PDPA 2012" },
@@ -24,11 +25,7 @@ const nodes: GraphNode[] = [
   { id: "advisory", label: "Client Privacy Advisory", sublabel: "Breach notification", kind: "document", x: 70, y: 88, affected: true, section: "Breach notification", status: "Needs Review", version: "PDPA Amendment Act 2020" },
 ];
 
-const edges = [["act", "termination"], ["mom", "notice"], ["amendment", "notice"], ["termination", "contract"], ["notice", "contract"], ["notice", "checklist"], ["notice", "rule"], ["notice", "handbook"], ["notice", "advisory"], ["notification", "advisory"]];
 const impactedAssets = ["contract", "checklist", "rule", "handbook", "advisory"];
-const kindMeta: Record<NodeKind, { label: string; icon: typeof Scale }> = {
-  regulation: { label: "Regulation", icon: Scale }, obligation: { label: "Obligation", icon: ShieldCheck }, document: { label: "Document", icon: FileText }, workflow: { label: "Workflow / rule", icon: Workflow },
-};
 
 function formatTime(seconds: number) {
   return [Math.floor(seconds / 3600), Math.floor((seconds % 3600) / 60), seconds % 60].map((n) => String(n).padStart(2, "0")).join(":");
@@ -95,11 +92,15 @@ export default function Home() {
     const contract = slot >= 0 ? r2Contracts[slot] : undefined;
     return { ...node, label: contract?.name ?? node.label, sublabel: contract?.section ?? node.sublabel, section: contract?.section ?? node.section, status: assetStatuses[node.id] ?? contract?.status ?? node.status };
   }), [assetStatuses, r2Contracts]);
-  const selectedNode = graphNodes.find((node) => node.id === selectedId) ?? graphNodes[2];
   const reviewAsset = graphNodes.find((node) => node.id === reviewAssetId);
   const displayedAssetIds = r2State === "connected" ? impactedAssets.slice(0, Math.min(r2Contracts.length, impactedAssets.length)) : impactedAssets;
 
-  function traceImpact() { setTraceActive(true); setSelectedId("amendment"); graphRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  function setAmendmentTrace(active: boolean) {
+    setTraceActive(active);
+    if (active) setSelectedId("amendment");
+    window.requestAnimationFrame(() => graphRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
+  function traceImpact() { setAmendmentTrace(!traceActive); }
   function refreshContracts() { setR2State("loading"); setR2Message(""); setSyncNonce((value) => value + 1); }
   function openReview(id: string) { setReviewAssetId(id); setManualEdit(false); setDecision(null); setTimerSeconds(0); setTimerRunning(false); setFinishedTime(null); setApplySimilar(false); }
   function finishReview() { setTimerRunning(false); setFinishedTime(timerSeconds); }
@@ -155,7 +156,7 @@ export default function Home() {
               <div className="effective"><Clock3 size={14} /><span>Effective</span><strong>1 February 2021</strong></div>
               <div className="ai-summary"><div><Sparkles size={14} /> VERIFIED SUMMARY</div><p>The 2020 amendment introduced a mandatory data-breach notification framework. Contracts and incident-response processes can now be traced against the real consultation, Bill, enactment and commencement history.</p></div>
               <div className="change-facts"><div><small>CHANGE TYPE</small><strong>Requirement modified</strong></div><div><small>IMPACT</small><strong>5 dependent assets</strong></div><div><small>RISK</small><strong>3 potentially outdated</strong></div></div>
-              <button className={`primary-button ${traceActive ? "traced" : ""}`} onClick={traceImpact}><Network size={16} />{traceActive ? "Impact traced" : "Trace impact"}<ArrowRight size={15} /></button>
+              <button className={`primary-button ${traceActive ? "traced" : ""}`} onClick={traceImpact} aria-pressed={traceActive}><Network size={16} />{traceActive ? "Clear amendment trace" : "Trace amendment impact"}<ArrowRight size={15} /></button>
             </section>
             <section className="panel timeline-panel">
               <div className="section-title"><div><History size={15} />LEGISLATIVE TIMELINE</div><span>4 stages</span></div>
@@ -169,21 +170,8 @@ export default function Home() {
           </aside>
 
           <section className="panel graph-panel" ref={graphRef}>
-            <div className="graph-header"><div><div className="section-title"><div><GitBranch size={16} />REGULATORY KNOWLEDGE GRAPH</div><span className="live-label"><span />LIVE</span></div><p>{traceActive ? "Blast radius: 1 obligation · 5 dependent assets" : "Select a node to inspect its regulatory dependencies"}</p></div><div className="graph-actions"><button onClick={() => setTraceActive(!traceActive)}>{traceActive ? <CirclePause size={15} /> : <CirclePlay size={15} />}{traceActive ? "Clear trace" : "Trace paths"}</button></div></div>
-            <div className={`graph-canvas ${traceActive ? "trace-active" : ""}`}>
-              <div className="graph-columns"><span>EXTERNAL SOURCES</span><span>LEGAL OBLIGATIONS</span><span>COMPANY KNOWLEDGE &amp; ASSETS</span></div>
-              <svg className="graph-lines" viewBox="0 0 1000 520" preserveAspectRatio="none" aria-hidden="true">{edges.map(([fromId, toId]) => { const from = nodes.find((n) => n.id === fromId)!; const to = nodes.find((n) => n.id === toId)!; const active = from.affected && to.affected; return <path key={`${fromId}-${toId}`} className={active ? "edge affected-edge" : "edge"} d={`M ${from.x * 10 + 120} ${from.y * 5.2} C ${from.x * 10 + 210} ${from.y * 5.2}, ${to.x * 10 - 100} ${to.y * 5.2}, ${to.x * 10} ${to.y * 5.2}`} />; })}</svg>
-              {graphNodes.map((node) => { const Icon = kindMeta[node.kind].icon; return <button key={node.id} className={`graph-node ${node.kind} ${node.affected ? "affected" : ""} ${selectedId === node.id ? "selected" : ""} ${node.status === "Validated" ? "node-validated" : ""}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} onClick={() => setSelectedId(node.id)} aria-label={`Inspect ${node.label}`}><span className="node-icon"><Icon size={15} /></span><span className="node-copy"><strong>{node.label}</strong><small>{node.sublabel}</small></span>{node.status && <span className={`node-state ${node.status.toLowerCase().replace(" ", "-")}`} />}</button>; })}
-              <div className="graph-legend">{Object.entries(kindMeta).map(([kind, meta]) => <span key={kind}><i className={kind} />{meta.label}</span>)}</div>
-            </div>
-            <div className="node-inspector">
-              <div className={`inspector-icon ${selectedNode.kind}`}>{(() => { const Icon = kindMeta[selectedNode.kind].icon; return <Icon size={18} />; })()}</div>
-              <div className="inspector-main"><small>SELECTED {kindMeta[selectedNode.kind].label.toUpperCase()}</small><strong>{selectedNode.label}</strong><span>{selectedNode.section || selectedNode.sublabel}</span></div>
-              <div className="inspector-data"><small>REGULATORY DEPENDENCY</small><strong>{selectedNode.kind === "regulation" ? "Primary legal source" : selectedNode.id === "notice" ? "PDPA Amendment Act 2020" : "Data Breach Notification"}</strong></div>
-              <div className="inspector-data"><small>VALIDATION STATUS</small>{selectedNode.status ? <StatusPill status={assetStatuses[selectedNode.id] ?? selectedNode.status} /> : <span className="status status-valid">Mapped</span>}</div>
-              <div className="inspector-data"><small>LAST VALIDATED AGAINST</small><strong>{selectedNode.version || "PDPA Amendment Act 2020"}</strong></div>
-              {selectedNode.status && assetStatuses[selectedNode.id] !== "Still Valid" && assetStatuses[selectedNode.id] !== "Validated" && <button className="small-button" onClick={() => openReview(selectedNode.id)}>Review change</button>}
-            </div>
+            <div className="graph-header"><div><div className="section-title"><div><GitBranch size={16} />REGULATORY KNOWLEDGE GRAPH</div><span className="live-label"><span />LIVE</span></div><p>{r2State === "connected" ? `${r2Contracts.length} R2 contracts grouped into top-down screening families` : "Connect R2 to populate the contract branches"}</p></div><div className="graph-actions"><button onClick={refreshContracts}><RefreshCw size={15} />Refresh graph</button></div></div>
+            <TopDownContractGraph contracts={r2Contracts} traceActive={traceActive} onTraceChange={setAmendmentTrace} />
           </section>
 
           <aside className="panel impact-panel">
