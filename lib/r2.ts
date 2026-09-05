@@ -27,11 +27,11 @@ function getConfig(): R2Config {
   return { endpoint: new URL(endpoint), bucket, accessKeyId, secretAccessKey };
 }
 
-const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
+const sha256 = (value: string | Uint8Array) => createHash("sha256").update(value).digest("hex");
 const hmac = (key: Buffer | string, value: string) => createHmac("sha256", key).update(value).digest();
 const encodePath = (value: string) => value.split("/").map(encodeURIComponent).join("/");
 
-async function signedR2Fetch(key = "", query = new URLSearchParams()) {
+async function signedR2Fetch(key = "", query = new URLSearchParams(), method = "GET", body?: Uint8Array, contentType?: string) {
   const config = getConfig();
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
@@ -41,10 +41,10 @@ async function signedR2Fetch(key = "", query = new URLSearchParams()) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value)}`)
     .join("&");
-  const payloadHash = sha256("");
+  const payloadHash = sha256(body ?? "");
   const canonicalHeaders = `host:${config.endpoint.host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
   const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
-  const canonicalRequest = ["GET", canonicalUri, canonicalQuery, canonicalHeaders, signedHeaders, payloadHash].join("\n");
+  const canonicalRequest = [method, canonicalUri, canonicalQuery, canonicalHeaders, signedHeaders, payloadHash].join("\n");
   const scope = `${dateStamp}/auto/s3/aws4_request`;
   const stringToSign = ["AWS4-HMAC-SHA256", amzDate, scope, sha256(canonicalRequest)].join("\n");
   const dateKey = hmac(`AWS4${config.secretAccessKey}`, dateStamp);
@@ -56,12 +56,19 @@ async function signedR2Fetch(key = "", query = new URLSearchParams()) {
   const url = new URL(canonicalUri, config.endpoint);
   url.search = canonicalQuery;
 
+  const headers: Record<string, string> = {
+    Authorization: authorization,
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": amzDate,
+  };
+  if (contentType) headers["content-type"] = contentType;
+
   return fetch(url, {
+    method,
     headers: {
-      Authorization: authorization,
-      "x-amz-content-sha256": payloadHash,
-      "x-amz-date": amzDate,
+      ...headers,
     },
+    body: body as BodyInit | undefined,
     cache: "no-store",
   });
 }
@@ -92,4 +99,11 @@ export async function listR2Objects(prefix: string): Promise<R2ObjectSummary[]> 
 export async function getR2Object(key: string) {
   if (!key || key.includes("..") || key.startsWith("/")) throw new Error("INVALID_R2_KEY");
   return signedR2Fetch(key);
+}
+
+export async function putR2Json(key: string, value: unknown) {
+  if (!key || key.includes("..") || key.startsWith("/")) throw new Error("INVALID_R2_KEY");
+  const body = new TextEncoder().encode(JSON.stringify(value, null, 2));
+  const response = await signedR2Fetch(key, new URLSearchParams(), "PUT", body, "application/json");
+  if (!response.ok) throw new Error(`R2_PUT_FAILED:${response.status}:${await response.text()}`);
 }

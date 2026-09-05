@@ -2,6 +2,7 @@
 
 import { Activity, ArrowRight, Bell, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, Search, Settings, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { RegulationLibrary } from "@/app/components/regulation-library";
 
 type NodeKind = "regulation" | "obligation" | "document" | "workflow";
 type AssetStatus = "Outdated" | "Needs Review" | "Still Valid" | "Validated";
@@ -9,17 +10,17 @@ type GraphNode = { id: string; label: string; sublabel: string; kind: NodeKind; 
 type R2Contract = { id: string; key: string; name: string; section: string; dependency: string; currentAssumption: string; updatedRequirement: string; reason: string; status: AssetStatus; size: number; lastModified: string; downloadUrl: string };
 
 const nodes: GraphNode[] = [
-  { id: "act", label: "Employment Act", sublabel: "External source", kind: "regulation", x: 8, y: 18, version: "2022 consolidated" },
-  { id: "mom", label: "MOM Notice Period Guidance", sublabel: "External source", kind: "regulation", x: 8, y: 48, version: "Guidance 2024" },
-  { id: "amendment", label: "Employment Act Amendment 2026", sublabel: "Change detected", kind: "regulation", x: 8, y: 78, affected: true, version: "Regulation v2" },
-  { id: "notice", label: "Minimum Notice Period", sublabel: "7 days → 14 days", kind: "obligation", x: 39, y: 43, affected: true, section: "s. 10(3)", version: "Regulation v2" },
-  { id: "termination", label: "Termination Requirements", sublabel: "Legal obligation", kind: "obligation", x: 39, y: 17 },
-  { id: "notification", label: "Employee Notification", sublabel: "Legal obligation", kind: "obligation", x: 39, y: 72 },
-  { id: "contract", label: "Employment Contract Template v4", sublabel: "Clause 8.2", kind: "document", x: 70, y: 12, affected: true, section: "Clause 8.2", status: "Outdated", version: "Employment Act 2022" },
-  { id: "checklist", label: "HR Termination Checklist", sublabel: "Step 5", kind: "workflow", x: 70, y: 31, affected: true, section: "Step 5", status: "Outdated", version: "Employment Act 2022" },
-  { id: "rule", label: "Notice Period Compliance Rule", sublabel: "Rule HR-014", kind: "workflow", x: 70, y: 50, affected: true, section: "Rule condition", status: "Outdated", version: "Employment Act 2022" },
-  { id: "handbook", label: "Employee Handbook", sublabel: "Section 11", kind: "document", x: 70, y: 69, affected: true, section: "Section 11", status: "Still Valid", version: "Regulation v2" },
-  { id: "advisory", label: "Client Employment Advisory", sublabel: "Paragraph 14", kind: "document", x: 70, y: 88, affected: true, section: "Paragraph 14", status: "Needs Review", version: "MOM Guidance 2024" },
+  { id: "act", label: "Personal Data Protection Act 2012", sublabel: "Official source", kind: "regulation", x: 8, y: 18, version: "PDPA 2012" },
+  { id: "mom", label: "PDPC Public Consultation 2020", sublabel: "Pre-legislative source", kind: "regulation", x: 8, y: 48, version: "14 May 2020" },
+  { id: "amendment", label: "PDPA Amendment Act 2020", sublabel: "Published 10 Dec 2020", kind: "regulation", x: 8, y: 78, affected: true, version: "Act 40 of 2020" },
+  { id: "notice", label: "Data Breach Notification", sublabel: "Commenced 1 Feb 2021", kind: "obligation", x: 39, y: 43, affected: true, section: "Part 6A", version: "Act 40 of 2020" },
+  { id: "termination", label: "Accountability Requirements", sublabel: "Legal obligation", kind: "obligation", x: 39, y: 17 },
+  { id: "notification", label: "Consent & Notification", sublabel: "Legal obligation", kind: "obligation", x: 39, y: 72 },
+  { id: "contract", label: "Data Processing Agreement", sublabel: "Incident clause", kind: "document", x: 70, y: 12, affected: true, section: "Incident clause", status: "Outdated", version: "PDPA pre-amendment" },
+  { id: "checklist", label: "Breach Response Checklist", sublabel: "Notification step", kind: "workflow", x: 70, y: 31, affected: true, section: "Notification step", status: "Outdated", version: "PDPA pre-amendment" },
+  { id: "rule", label: "Breach Assessment Rule", sublabel: "Rule PRIV-014", kind: "workflow", x: 70, y: 50, affected: true, section: "Rule condition", status: "Outdated", version: "PDPA pre-amendment" },
+  { id: "handbook", label: "Privacy Handbook", sublabel: "Incident response", kind: "document", x: 70, y: 69, affected: true, section: "Incident response", status: "Still Valid", version: "PDPA Amendment Act 2020" },
+  { id: "advisory", label: "Client Privacy Advisory", sublabel: "Breach notification", kind: "document", x: 70, y: 88, affected: true, section: "Breach notification", status: "Needs Review", version: "PDPA Amendment Act 2020" },
 ];
 
 const edges = [["act", "termination"], ["mom", "notice"], ["amendment", "notice"], ["termination", "contract"], ["notice", "contract"], ["notice", "checklist"], ["notice", "rule"], ["notice", "handbook"], ["notice", "advisory"], ["notification", "advisory"]];
@@ -43,7 +44,7 @@ export default function Home() {
   const [assetStatuses, setAssetStatuses] = useState<Record<string, AssetStatus>>(Object.fromEntries(nodes.filter((node) => node.status).map((node) => [node.id, node.status!])));
   const [reviewAssetId, setReviewAssetId] = useState<string | null>(null);
   const [manualEdit, setManualEdit] = useState(false);
-  const [draft, setDraft] = useState("Employees must provide at least 14 days' notice before termination.");
+  const [draft, setDraft] = useState("The processor must notify the company without undue delay after becoming aware of a personal data breach.");
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [finishedTime, setFinishedTime] = useState<number | null>(null);
@@ -53,6 +54,7 @@ export default function Home() {
   const [r2State, setR2State] = useState<"loading" | "connected" | "unconfigured" | "error">("loading");
   const [r2Message, setR2Message] = useState("");
   const [syncNonce, setSyncNonce] = useState(0);
+  const [regulationsOpen, setRegulationsOpen] = useState(false);
   const graphRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function Home() {
           <small>WORKSPACE</small>
           <button className="active"><LayoutGrid size={16} /><span>Resilience</span></button>
           <button><Network size={16} /><span>Knowledge graph</span><em>24</em></button>
-          <button><Activity size={16} /><span>Regulatory changes</span><em className="alert-count">1</em></button>
+          <button onClick={() => setRegulationsOpen(true)}><Activity size={16} /><span>Regulatory history</span><em className="alert-count">1</em></button>
           <small>LEGAL OPERATIONS</small>
           <button><FileText size={16} /><span>Company assets</span></button>
           <button><BriefcaseBusiness size={16} /><span>Review queue</span><em>4</em></button>
@@ -150,20 +152,21 @@ export default function Home() {
           <aside className="left-column">
             <section className="panel change-card">
               <div className="panel-label"><span className="change-pulse" /> NEW CHANGE DETECTED <span className="new-badge">NEW</span></div>
-              <h2>Employment Notice Period Amendment</h2>
-              <div className="source-line"><span className="source-icon"><Scale size={15} /></span><div><small>Source</small><strong>Ministry of Manpower</strong></div></div>
-              <div className="requirement-change"><div><small>PREVIOUS REQUIREMENT</small><span>Minimum notice period</span><strong>7 days</strong></div><ArrowRight size={17} /><div><small>UPDATED REQUIREMENT</small><span>Minimum notice period</span><strong>14 days</strong></div></div>
-              <div className="effective"><Clock3 size={14} /><span>Effective</span><strong>15 October 2026</strong></div>
-              <div className="ai-summary"><div><Sparkles size={14} /> AI SUMMARY</div><p>The minimum notice period has increased from 7 to 14 days. Internal employment contracts, HR procedures and automated rules that encode a 7-day minimum may require remediation.</p></div>
+              <h2>PDPA Amendment Act 2020</h2>
+              <div className="source-line"><span className="source-icon"><Scale size={15} /></span><div><small>Source</small><strong>Singapore Statutes Online</strong></div></div>
+              <div className="requirement-change"><div><small>BEFORE AMENDMENT</small><span>Breach notification</span><strong>No statutory regime</strong></div><ArrowRight size={17} /><div><small>AFTER COMMENCEMENT</small><span>Breach notification</span><strong>Mandatory framework</strong></div></div>
+              <div className="effective"><Clock3 size={14} /><span>Effective</span><strong>1 February 2021</strong></div>
+              <div className="ai-summary"><div><Sparkles size={14} /> VERIFIED SUMMARY</div><p>The 2020 amendment introduced a mandatory data-breach notification framework. Contracts and incident-response processes can now be traced against the real consultation, Bill, enactment and commencement history.</p></div>
               <div className="change-facts"><div><small>CHANGE TYPE</small><strong>Requirement modified</strong></div><div><small>IMPACT</small><strong>5 dependent assets</strong></div><div><small>RISK</small><strong>3 potentially outdated</strong></div></div>
               <button className={`primary-button ${traceActive ? "traced" : ""}`} onClick={traceImpact}><Network size={16} />{traceActive ? "Impact traced" : "Trace impact"}<ArrowRight size={15} /></button>
             </section>
             <section className="panel timeline-panel">
-              <div className="section-title"><div><History size={15} />CHANGE TIMELINE</div><span>3 versions</span></div>
+              <div className="section-title"><div><History size={15} />LEGISLATIVE TIMELINE</div><span>4 stages</span></div>
               <div className="timeline">
-                <div className="timeline-item"><span className="timeline-dot" /><div><time>2022</time><strong>Requirement introduced</strong><p>Minimum notice period set at <b>7 days</b></p></div></div>
-                <div className="timeline-item"><span className="timeline-dot" /><div><time>2024</time><strong>Guidance clarification</strong><p>No material change</p></div></div>
-                <div className="timeline-item current"><span className="timeline-dot" /><div><time>2026</time><strong>Employment Act amendment</strong><p><del>7 days</del><b>14 days</b></p></div></div>
+                <div className="timeline-item"><span className="timeline-dot" /><div><time>14 May 2020</time><strong>Public consultation</strong><p>Draft amendment proposal released</p></div></div>
+                <div className="timeline-item"><span className="timeline-dot" /><div><time>5 Oct 2020</time><strong>Bill introduced</strong><p>Bill No. 37/2020 published</p></div></div>
+                <div className="timeline-item"><span className="timeline-dot" /><div><time>10 Dec 2020</time><strong>Amendment Act published</strong><p>Act 40 of 2020</p></div></div>
+                <div className="timeline-item current"><span className="timeline-dot" /><div><time>1 Feb 2021</time><strong>First phase commenced</strong><p>Mandatory breach notification framework</p></div></div>
               </div>
             </section>
           </aside>
@@ -179,19 +182,19 @@ export default function Home() {
             <div className="node-inspector">
               <div className={`inspector-icon ${selectedNode.kind}`}>{(() => { const Icon = kindMeta[selectedNode.kind].icon; return <Icon size={18} />; })()}</div>
               <div className="inspector-main"><small>SELECTED {kindMeta[selectedNode.kind].label.toUpperCase()}</small><strong>{selectedNode.label}</strong><span>{selectedNode.section || selectedNode.sublabel}</span></div>
-              <div className="inspector-data"><small>REGULATORY DEPENDENCY</small><strong>{selectedNode.kind === "regulation" ? "Primary legal source" : selectedNode.id === "notice" ? "Employment Act Amendment 2026" : "Minimum Notice Period"}</strong></div>
+              <div className="inspector-data"><small>REGULATORY DEPENDENCY</small><strong>{selectedNode.kind === "regulation" ? "Primary legal source" : selectedNode.id === "notice" ? "PDPA Amendment Act 2020" : "Data Breach Notification"}</strong></div>
               <div className="inspector-data"><small>VALIDATION STATUS</small>{selectedNode.status ? <StatusPill status={assetStatuses[selectedNode.id] ?? selectedNode.status} /> : <span className="status status-valid">Mapped</span>}</div>
-              <div className="inspector-data"><small>LAST VALIDATED AGAINST</small><strong>{selectedNode.version || "Employment Act 2022"}</strong></div>
+              <div className="inspector-data"><small>LAST VALIDATED AGAINST</small><strong>{selectedNode.version || "PDPA Amendment Act 2020"}</strong></div>
               {selectedNode.status && assetStatuses[selectedNode.id] !== "Still Valid" && assetStatuses[selectedNode.id] !== "Validated" && <button className="small-button" onClick={() => openReview(selectedNode.id)}>Review change</button>}
             </div>
           </section>
 
           <aside className="panel impact-panel">
             <div className="section-title"><div><Activity size={15} />BLAST RADIUS</div><span>{r2State === "connected" ? "R2 LIVE" : traceActive ? "TRACED" : "DEMO"}</span></div>
-            <div className="impact-total"><strong>{r2State === "connected" ? r2Contracts.length : 5}</strong><div><span>dependent assets</span><small>via Minimum Notice Period</small></div></div>
+            <div className="impact-total"><strong>{r2State === "connected" ? r2Contracts.length : 5}</strong><div><span>dependent assets</span><small>via Data Breach Notification</small></div></div>
             <div className="impact-breakdown"><span><i className="red-dot" />{Object.values(assetStatuses).filter((s) => s === "Outdated").length} Outdated</span><span><i className="amber-dot" />{Object.values(assetStatuses).filter((s) => s === "Needs Review").length} Needs Review</span><span><i className="green-dot" />{Object.values(assetStatuses).filter((s) => ["Still Valid", "Validated"].includes(s)).length} Valid</span></div>
             {(r2State !== "connected" || r2Contracts.length === 0) && <div className="r2-notice"><Cloud size={15} /><div><strong>{r2State === "loading" ? "Connecting to contract storage…" : r2State === "connected" ? "No contracts found under the configured prefix" : "Showing demo contracts"}</strong><p>{r2Message || "Add the read-only R2 credentials to .env.local, then refresh."}</p></div></div>}
-            <div className="asset-list">{displayedAssetIds.map((id, index) => { const asset = graphNodes.find((node) => node.id === id)!; const contract = r2Contracts[index]; const status = assetStatuses[id]; const current = contract?.currentAssumption ?? "7 days"; const updated = contract?.updatedRequirement ?? "14 days"; const reason = contract?.reason ?? (id === "contract" ? "This clause directly encodes the previous statutory minimum." : id === "checklist" ? "This step instructs HR to apply the former minimum." : id === "rule" ? "The automated rule tests against the former threshold." : "The advice may restate an outdated threshold."); return <article className={`asset-item ${selectedId === id ? "active" : ""}`} key={id} onClick={() => setSelectedId(id)}><div className="asset-head"><div className={`asset-icon ${asset.kind}`}><FileText size={14} /></div><div><strong>{asset.label}</strong><small>{asset.section}</small></div><StatusPill status={status} /></div>{contract && <a className="contract-link" href={contract.downloadUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><ExternalLink size={11} />Open source contract · {(contract.size / 1024).toFixed(0)} KB</a>}{(status === "Outdated" || status === "Needs Review") && <><div className="dependency-row"><span>Current assumption <b>{current}</b></span><ArrowRight size={12} /><span>Requirement <b>{updated}</b></span></div><p>{reason}</p><button className="review-button" onClick={(event) => { event.stopPropagation(); openReview(id); }}>Review change <ChevronRight size={14} /></button></>}{status === "Validated" && <div className="revalidated-line"><CheckCircle2 size={13} />Dependency revalidated against Regulation v2</div>}</article>; })}</div>
+            <div className="asset-list">{displayedAssetIds.map((id, index) => { const asset = graphNodes.find((node) => node.id === id)!; const contract = r2Contracts[index]; const status = assetStatuses[id]; const current = contract?.currentAssumption ?? "No mapped statutory notification workflow"; const updated = contract?.updatedRequirement ?? "Assess and notify qualifying breaches"; const reason = contract?.reason ?? (id === "contract" ? "This agreement should be checked for timely processor-to-company incident notice." : id === "checklist" ? "This workflow should include assessment and statutory notification decisions." : id === "rule" ? "The automated rule should map the breach-assessment criteria." : "This document may need to reflect the notification framework."); return <article className={`asset-item ${selectedId === id ? "active" : ""}`} key={id} onClick={() => setSelectedId(id)}><div className="asset-head"><div className={`asset-icon ${asset.kind}`}><FileText size={14} /></div><div><strong>{asset.label}</strong><small>{asset.section}</small></div><StatusPill status={status} /></div>{contract && <a className="contract-link" href={contract.downloadUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}><ExternalLink size={11} />Open source contract · {(contract.size / 1024).toFixed(0)} KB</a>}{(status === "Outdated" || status === "Needs Review") && <><div className="dependency-row"><span>Current assumption <b>{current}</b></span><ArrowRight size={12} /><span>Requirement <b>{updated}</b></span></div><p>{reason}</p><button className="review-button" onClick={(event) => { event.stopPropagation(); openReview(id); }}>Review change <ChevronRight size={14} /></button></>}{status === "Validated" && <div className="revalidated-line"><CheckCircle2 size={13} />Dependency revalidated against PDPA Amendment Act 2020</div>}</article>; })}</div>
             <div className="progress-card"><div><span>Regulatory change remediation</span><strong>{resolvedCount} / 5 assets resolved</strong></div><div className="progress-track"><span style={{ width: `${resolvedCount * 20}%` }} /></div><small>{resolvedCount * 20}% complete</small></div>
           </aside>
         </div>
@@ -203,19 +206,20 @@ export default function Home() {
           <div className="review-topbar"><div className="review-title"><span className="review-doc-icon"><FileText size={18} /></span><div><small>HUMAN REVIEW WORKSPACE</small><strong>{reviewAsset.label}</strong><span>{reviewAsset.section}</span></div></div><button className="icon-button" onClick={() => setReviewAssetId(null)} aria-label="Close review"><X size={18} /></button></div>
           <div className="review-layout">
             <div className="review-content">
-              <div className="review-context"><div><small>REGULATORY SOURCE</small><strong><Scale size={14} /> Employment Act Amendment 2026</strong></div><div><small>WHY THIS WAS FLAGGED</small><p>This clause directly implements the Minimum Notice Period obligation, which changed from 7 to 14 days.</p></div></div>
-              <div className="diff-card"><div className="diff-header"><div><GitBranch size={14} />PROPOSED REMEDIATION</div><span><Bot size={13} />AI GENERATED · REQUIRES REVIEW</span></div><div className="diff-file"><FileText size={14} />{reviewAsset.label}<span>{reviewAsset.section}</span></div><div className="diff-row removed"><span className="line-number">−</span><code>Employees must provide at least <mark>7 days&apos;</mark> notice before termination.</code></div><div className="diff-row added"><span className="line-number">+</span><code>Employees must provide at least <mark>14 days&apos;</mark> notice before termination.</code></div></div>
+              <div className="review-context"><div><small>REGULATORY SOURCE</small><strong><Scale size={14} /> PDPA Amendment Act 2020</strong></div><div><small>WHY THIS WAS FLAGGED</small><p>This asset may depend on the mandatory data-breach notification framework that commenced on 1 February 2021.</p></div></div>
+              <div className="diff-card"><div className="diff-header"><div><GitBranch size={14} />PROPOSED REMEDIATION</div><span><Bot size={13} />AI GENERATED · REQUIRES REVIEW</span></div><div className="diff-file"><FileText size={14} />{reviewAsset.label}<span>{reviewAsset.section}</span></div><div className="diff-row removed"><span className="line-number">−</span><code>The processor will inform the company of security incidents where practicable.</code></div><div className="diff-row added"><span className="line-number">+</span><code>The processor must notify the company without undue delay after becoming aware of a personal data breach.</code></div></div>
               {manualEdit && <div className="manual-editor"><label htmlFor="manual-edit">MANUAL EDIT</label><textarea id="manual-edit" value={draft} onChange={(event) => setDraft(event.target.value)} /><small>Your edit will be recorded in the audit trail.</small></div>}
-              {decision ? <div className="remediation-success"><span><CheckCircle2 size={22} /></span><div><small>REMEDIATED</small><strong>{reviewAsset.label}</strong><p><Check size={13} /> Updated &nbsp; <Check size={13} /> Human reviewed &nbsp; <Check size={13} /> Dependency revalidated</p><em>Validated against Employment Act Amendment 2026</em></div></div> : <div className="review-actions"><button className="accept-button" onClick={acceptChange}><Check size={16} />Accept change</button><button className="secondary-button" onClick={() => setDecision("Change rejected")}><X size={15} />Reject</button><button className={`secondary-button ${manualEdit ? "active" : ""}`} onClick={() => setManualEdit(!manualEdit)}><FileText size={15} />Edit manually</button><button className="secondary-button" onClick={() => setDecision("Review deferred")}><Clock3 size={15} />Defer</button><label className="similar-toggle"><input type="checkbox" checked={applySimilar} onChange={(event) => setApplySimilar(event.target.checked)} /><span><Check size={12} /></span>Apply to similar outdated assets</label></div>}
+              {decision ? <div className="remediation-success"><span><CheckCircle2 size={22} /></span><div><small>REMEDIATED</small><strong>{reviewAsset.label}</strong><p><Check size={13} /> Updated &nbsp; <Check size={13} /> Human reviewed &nbsp; <Check size={13} /> Dependency revalidated</p><em>Validated against PDPA Amendment Act 2020</em></div></div> : <div className="review-actions"><button className="accept-button" onClick={acceptChange}><Check size={16} />Accept change</button><button className="secondary-button" onClick={() => setDecision("Change rejected")}><X size={15} />Reject</button><button className={`secondary-button ${manualEdit ? "active" : ""}`} onClick={() => setManualEdit(!manualEdit)}><FileText size={15} />Edit manually</button><button className="secondary-button" onClick={() => setDecision("Review deferred")}><Clock3 size={15} />Defer</button><label className="similar-toggle"><input type="checkbox" checked={applySimilar} onChange={(event) => setApplySimilar(event.target.checked)} /><span><Check size={12} /></span>Apply to similar outdated assets</label></div>}
             </div>
             <aside className="review-sidebar">
               <div className="timer-card"><div className="timer-heading"><TimerReset size={16} /><span>REVIEW SESSION TRACKING</span><i className={timerRunning ? "running" : ""} /></div><strong className="timer-value">{formatTime(timerSeconds)}</strong><p>Time is recorded only while the review session is active.</p><div className="timer-controls">{!timerRunning ? <button onClick={() => setTimerRunning(true)}><Play size={14} />{timerSeconds ? "Resume" : "Start"}</button> : <button onClick={() => setTimerRunning(false)}><Pause size={14} />Pause</button>}<button onClick={finishReview} disabled={!timerSeconds}><Check size={14} />Finish review</button></div></div>
-              <div className="audit-card"><div className="section-title"><div><History size={14} />AUDIT TRAIL</div></div><div className="audit-event"><span>SL</span><div><strong>Review opened</strong><p>Sarah Lim · Legal counsel</p><time>Just now</time></div></div>{(finishedTime !== null || decision) && <div className="audit-event completed"><span><Check size={13} /></span><div><strong>{decision || "Review session completed"}</strong><p>Reviewed by Sarah Lim · {Math.floor((finishedTime ?? timerSeconds) / 60)}m {(finishedTime ?? timerSeconds) % 60}s</p><time>Validated against Regulation v2</time></div></div>}</div>
+              <div className="audit-card"><div className="section-title"><div><History size={14} />AUDIT TRAIL</div></div><div className="audit-event"><span>SL</span><div><strong>Review opened</strong><p>Sarah Lim · Legal counsel</p><time>Just now</time></div></div>{(finishedTime !== null || decision) && <div className="audit-event completed"><span><Check size={13} /></span><div><strong>{decision || "Review session completed"}</strong><p>Reviewed by Sarah Lim · {Math.floor((finishedTime ?? timerSeconds) / 60)}m {(finishedTime ?? timerSeconds) % 60}s</p><time>Validated against PDPA Amendment Act 2020</time></div></div>}</div>
               <div className="session-note"><BookOpen size={15} /><p><strong>Review session tracking</strong>This record can later be exported to your firm&apos;s billing or time-entry system.</p></div>
             </aside>
           </div>
         </div>
       </div>}
+      {regulationsOpen && <RegulationLibrary onClose={() => setRegulationsOpen(false)} />}
     </main>
   );
 }
