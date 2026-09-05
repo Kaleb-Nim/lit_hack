@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Lora, Playfair_Display, Source_Sans_3 } from "next/font/google";
 import { ReviewProvider } from "@/lib/review/provider";
 import "./globals.css";
+import "@xyflow/react/dist/style.css";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",

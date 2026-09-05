@@ -3,6 +3,7 @@ import { ContractEditor } from "../contract-editor";
 import { PdfContractWorkbench } from "../pdf-contract-workbench";
 import { isRegulationId } from "@/lib/regulatory-workspace";
 import "../contracts.css";
+import "../../review/review.css";
 
 type Props = { params: Promise<{ key: string[] }>; searchParams: Promise<{ regulation?: string | string[] }> };
 

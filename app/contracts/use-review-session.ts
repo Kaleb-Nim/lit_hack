@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function useReviewSession() {
+export function useReviewSession(autoStart = false) {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
@@ -12,6 +12,18 @@ export function useReviewSession() {
   const [manualEdits, setManualEdits] = useState<Set<string>>(new Set());
   const anchor = useRef(0);
   const base = useRef(0);
+
+  useEffect(() => {
+    if (!autoStart) return;
+    const timer = window.setTimeout(() => {
+      const now = Date.now();
+      setStartedAt(new Date(now));
+      anchor.current = now;
+      base.current = 0;
+      setRunning(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [autoStart]);
 
   useEffect(() => {
     if (!running) return;

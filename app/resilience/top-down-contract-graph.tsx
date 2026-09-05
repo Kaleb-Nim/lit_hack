@@ -44,12 +44,17 @@ export function TopDownContractGraph({
   contracts,
   traceActive = false,
   onTraceChange,
+  initialRegulationId = "PDPA2012",
 }: {
   contracts: GraphContract[];
   traceActive?: boolean;
   onTraceChange?: (active: boolean) => void;
+  initialRegulationId?: RegulationId;
 }) {
-  const [regulationId, setRegulationId] = useState<RegulationId>("PDPA2012");
+  const [regulationId, setRegulationId] = useState<RegulationId>(initialRegulationId);
+  const [localTraceActive, setLocalTraceActive] = useState(false);
+  const tracing = onTraceChange ? traceActive : localTraceActive;
+  const changeTrace = onTraceChange ?? setLocalTraceActive;
   const regulation = WORKSPACE_REGULATIONS.find((item) => item.id === regulationId)!;
   const groups = useMemo(() => families.map((family) => ({
     ...family,
@@ -57,7 +62,7 @@ export function TopDownContractGraph({
   })), [contracts]);
 
   return (
-    <div className={`td-graph${traceActive ? " is-tracing" : ""}`} aria-label="Top-down contract dependency graph">
+    <div className={`td-graph${tracing ? " is-tracing" : ""}`} aria-label="Top-down contract dependency graph">
       <div className="td-graph__toolbar">
         <div className="td-graph__controls" aria-label="Choose regulation">
           {WORKSPACE_REGULATIONS.map((item) => (
@@ -66,15 +71,15 @@ export function TopDownContractGraph({
             </button>
           ))}
         </div>
-        <button className={`td-graph__trace ${traceActive ? "active" : ""}`} onClick={() => onTraceChange?.(!traceActive)} aria-pressed={traceActive}>
-          {traceActive ? <X size={15} /> : <Network size={15} />}
-          {traceActive ? "Clear amendment trace" : "Trace amendment"}
+        <button className={`td-graph__trace ${tracing ? "active" : ""}`} onClick={() => changeTrace(!tracing)} aria-pressed={tracing}>
+          {tracing ? <X size={15} /> : <Network size={15} />}
+          {tracing ? "Clear amendment trace" : "Trace amendment"}
         </button>
       </div>
 
       <div className="td-graph__root">
         <span><Scale size={18} /></span>
-        <div><small>{traceActive ? "Amendment source · tracing active" : `${regulation.status} regulation · Singapore`}</small><strong>{regulation.title}</strong></div>
+        <div><small>{tracing ? "Amendment source · tracing active" : `${regulation.status} regulation · Singapore`}</small><strong>{regulation.title}</strong></div>
       </div>
       <div className="td-graph__trunk" aria-hidden="true" />
 
@@ -89,7 +94,7 @@ export function TopDownContractGraph({
                 <div><strong>{group.label}</strong><small>{group.description}</small></div>
                 <em>{group.contracts.length}</em>
               </div>
-              {traceActive && <div className="td-branch__trace-label">{direct ? "Direct amendment path" : "Secondary screening path"}</div>}
+              {tracing && <div className="td-branch__trace-label">{direct ? "Direct amendment path" : "Secondary screening path"}</div>}
               <div className="td-branch__documents">
                 {group.contracts.map((contract) => {
                   const format = (contract.format ?? contract.key.split(".").pop())?.toLowerCase();
@@ -108,7 +113,7 @@ export function TopDownContractGraph({
           })}
         </div>
       </div>
-      <p className="td-graph__note" aria-live="polite">{traceActive ? `Showing the ${regulation.shortName} amendment path from official source to contract families. Gold marks the highest-priority filename match; every other file remains in the secondary screening path.` : "Automatic filename screening only. Open a contract to confirm its legal obligations; R2 originals remain unchanged."}</p>
+      <p className="td-graph__note" aria-live="polite">{tracing ? `Showing the ${regulation.shortName} amendment path from official source to contract families. Gold marks the highest-priority filename match; every other file remains in the secondary screening path.` : "Automatic filename screening only. Open a contract to confirm its legal obligations; R2 originals remain unchanged."}</p>
     </div>
   );
 }
