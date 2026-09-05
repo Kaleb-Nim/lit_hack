@@ -1650,6 +1650,7 @@ button {
     padding: 8px;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto !important;
@@ -1898,4 +1899,37 @@ button {
   .change-arrow { min-height: 24px; transform: rotate(90deg); }
   .ai-comparison-head { align-items: flex-start; flex-direction: column; }
   .law-timeline a { grid-template-columns: 13px 70px 1fr auto; }
+}
+
+/* Final route-level theme overrides. Keep these last so the legacy dashboard
+   consumes the same Pearson tokens as every review and contract route. */
+:root { --background: #e3ded5; --foreground: #16202c; --ink: #16202c; --muted: #6b6459; --line: #d8d2c7; --green: #14654f; --green-2: #8a6a2f; --green-soft: #f1e7d4; --panel: #fff; }
+body { background: var(--background); color: var(--foreground); font-family: var(--sans); }
+.sidebar { background: var(--navy); color: rgba(247,244,238,.74); border-color: #26384c; border-radius: 0; }
+.sidebar-brand { color: var(--cream); text-decoration: none; }
+.sidebar-brand > span { border-color: rgba(247,244,238,.28); color: var(--gold); border-radius: 0; }
+.sidebar nav button,.sidebar nav a { border-radius: 0; color: rgba(247,244,238,.7); }
+.sidebar nav button:hover,.sidebar nav a:hover { background: rgba(247,244,238,.08); color: var(--cream); }
+.sidebar nav button.active { background: var(--gold); color: var(--navy); }
+.main-stage,.content { background: var(--canvas); }
+.topbar { background: rgba(247,244,238,.96); color: var(--navy); border-color: var(--rule); }
+.search-button,.ask-button { border-radius: 0; text-decoration: none; }
+.ask-button { background: var(--navy); color: var(--cream); }
+.ask-button:hover { background: var(--navy-hover); color: var(--cream); }
+.panel,.metric-card { background: var(--paper); border-color: var(--rule); border-radius: 0; box-shadow: 0 1px 3px rgba(22,32,44,.11); }
+.primary-button,.accept-button { background: var(--navy); border-radius: 0; }
+.primary-button:hover,.accept-button:hover { background: var(--navy-hover); }
+.eyebrow,.panel-label,.section-title>div { color: var(--gold-ink); }
+.review-topbar,.registry-topbar { background: var(--navy); }
+.regulation-workspace,.version-compare,.lifecycle-panel,.annotation-panel,.ai-comparison { border-radius: 0; }
+.registry-topbar>div:first-child>span { background: var(--gold); color: var(--navy); border-radius: 0; }
+.registry-heading h2 { color: var(--navy); }
+.annotation-panel>button,.ai-comparison-head button { background: var(--navy); border-radius: 0; }
+.annotation-panel textarea,.registry-search,.registry-heading>a,.change-before-after>div { border-radius: 0; }
+@media (max-width: 1100px) {
+  .sidebar nav a span,.sidebar nav a em { display: none; }
+  .sidebar nav a { justify-content: center; padding: 0; }
+}
+@media (max-width: 640px) {
+  .sidebar nav a { height: 43px; display: flex; justify-content: center; }
 }

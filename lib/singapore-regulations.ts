@@ -83,6 +83,22 @@ export const pdpaRecord: RegulationRecord = {
   },
 };
 
+export const wfaRecord: RegulationRecord = {
+  id: "WFA2025",
+  title: "Workplace Fairness Act 2025",
+  kind: "act",
+  status: "uncommenced",
+  source: "Singapore Statutes Online",
+  sourceUrl: "https://sso.agc.gov.sg/Act/WFA2025/Uncommenced/20250304073414?DocDate=20250213",
+  currentAsAt: "2026-09-06",
+  versions: [],
+  lifecycle: [
+    { date: "2025-01-08", stage: "passed", label: "Passed by Parliament", detail: "Parliament passed the Workplace Fairness Bill.", sourceUrl: "https://sso.agc.gov.sg/Act/WFA2025/Uncommenced/20250304073414?DocDate=20250213" },
+    { date: "2025-02-03", stage: "assent", label: "Presidential assent", detail: "The Workplace Fairness Act 2025 received assent.", sourceUrl: "https://sso.agc.gov.sg/Act/WFA2025/Uncommenced/20250304073414?DocDate=20250213" },
+    { date: "2025-02-13", stage: "published", label: "Act published", detail: "Act 8 of 2025 was published and remains uncommenced.", sourceUrl: "https://sso.agc.gov.sg/Act/WFA2025/Uncommenced/20250304073414?DocDate=20250213" },
+  ],
+};
+
 const catalogKey = "Regulations/catalog.json";
 const overlaysKey = "Regulations/overlays.json";
 
@@ -91,13 +107,13 @@ export async function readRegulationCatalog(): Promise<RegulationCatalog> {
     const response = await getR2Object(catalogKey);
     if (response.ok) {
       const catalog = await response.json() as RegulationCatalog;
-      const withoutSeed = catalog.instruments.filter((item) => item.id !== pdpaRecord.id);
-      return { ...catalog, instruments: [pdpaRecord, ...withoutSeed] };
+      const withoutSeed = catalog.instruments.filter((item) => item.id !== pdpaRecord.id && item.id !== wfaRecord.id);
+      return { ...catalog, instruments: [pdpaRecord, wfaRecord, ...withoutSeed] };
     }
   } catch {
     // The verified PDPA record remains available before the first scheduled catalogue sync.
   }
-  return { fetchedAt: null, source: "Singapore Statutes Online", sourceUrl: "https://sso.agc.gov.sg/", instruments: [pdpaRecord] };
+  return { fetchedAt: null, source: "Singapore Statutes Online", sourceUrl: "https://sso.agc.gov.sg/", instruments: [pdpaRecord, wfaRecord] };
 }
 
 export async function writeRegulationCatalog(catalog: RegulationCatalog) {

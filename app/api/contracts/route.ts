@@ -37,6 +37,7 @@ export async function GET() {
       .filter((object) => object.key !== manifestKey)
       .map((object) => {
         const metadata = manifest.find((item) => item.key === object.key);
+        const format = object.key.split(".").pop()?.toLowerCase() ?? "file";
         return {
           id: object.etag || object.key,
           key: object.key,
@@ -49,6 +50,8 @@ export async function GET() {
           status: metadata?.status ?? "Needs Review",
           size: object.size,
           lastModified: object.lastModified,
+          format,
+          editable: format === "docx",
           downloadUrl: `/api/contracts/${object.key.split("/").map(encodeURIComponent).join("/")}`,
         };
       });

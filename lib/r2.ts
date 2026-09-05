@@ -29,17 +29,21 @@ function getConfig(): R2Config {
 
 const sha256 = (value: string | Uint8Array) => createHash("sha256").update(value).digest("hex");
 const hmac = (key: Buffer | string, value: string) => createHmac("sha256", key).update(value).digest();
-const encodePath = (value: string) => value.split("/").map(encodeURIComponent).join("/");
+// AWS Signature V4 uses RFC 3986 encoding. JavaScript's encodeURIComponent
+// deliberately leaves !'()* untouched, but those characters must be escaped
+// in the canonical URI or R2 rejects keys such as "Agreement (1).docx".
+const awsEncodeURIComponent = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+const encodePath = (value: string) => value.split("/").map(awsEncodeURIComponent).join("/");
 
 async function signedR2Fetch(key = "", query = new URLSearchParams(), method = "GET", body?: Uint8Array, contentType?: string) {
   const config = getConfig();
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
-  const canonicalUri = `/${encodeURIComponent(config.bucket)}${key ? `/${encodePath(key)}` : ""}`;
+  const canonicalUri = `/${awsEncodeURIComponent(config.bucket)}${key ? `/${encodePath(key)}` : ""}`;
   const canonicalQuery = [...query.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([name, value]) => `${encodeURIComponent(name)}=${encodeURIComponent(value)}`)
+    .map(([name, value]) => `${awsEncodeURIComponent(name)}=${awsEncodeURIComponent(value)}`)
     .join("&");
   const payloadHash = sha256(body ?? "");
   const canonicalHeaders = `host:${config.endpoint.host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;

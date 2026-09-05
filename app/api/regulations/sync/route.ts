@@ -1,4 +1,4 @@
-import { pdpaRecord, writeRegulationCatalog, type RegulationRecord } from "@/lib/singapore-regulations";
+import { pdpaRecord, wfaRecord, writeRegulationCatalog, type RegulationRecord } from "@/lib/singapore-regulations";
 import { extractLegalText, pdpaComparisonDates, writePdpaSourceSnapshot } from "@/lib/pdpa-comparison";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       await fetchCategory("subsidiary-legislation", "Revoked", "revoked"),
       await fetchCategory("subsidiary-legislation", "Uncommenced", "uncommenced"),
     ];
-    const instruments = [pdpaRecord, ...categories.flat().filter((item) => item.id !== pdpaRecord.id)];
+    const instruments = [pdpaRecord, wfaRecord, ...categories.flat().filter((item) => item.id !== pdpaRecord.id && item.id !== wfaRecord.id)];
     const catalog = { fetchedAt: new Date().toISOString(), source: "Singapore Statutes Online" as const, sourceUrl: SSO, instruments };
     await writeRegulationCatalog(catalog);
     const pdpaSnapshots = await syncPdpaSnapshots();

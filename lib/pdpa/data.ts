@@ -72,7 +72,7 @@ export const REGULATION = {
   client: "Meridian Labs Pte Ltd",
   matter: "Matter 2026-114",
   preparedLine:
-    "Prepared 6 Sep 2026 by A. Osei, Corporate · verified against SSO and PDPC sources",
+    "Verified 6 Sep 2026 against Singapore Statutes Online and PDPC sources",
   reviewer: "A. Osei, Corporate",
   summary:
     "The 2020 amendment introduced mandatory breach notification, expanded deemed-consent and legitimate-interest pathways, strengthened individual accountability, and enacted a higher financial-penalty ceiling that commenced on 1 October 2022. The enacted data-portability provisions remain uncommenced and are shown as a monitoring item.",

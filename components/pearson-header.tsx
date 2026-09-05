@@ -21,7 +21,7 @@ interface Props {
 export function PearsonHeader({ kicker, title, meta, position, actions }: Props) {
   return (
     <header className="ph">
-      <Link href="/" className="ph__brand" aria-label="Pearson — back to the impact summary">
+      <Link href="/" className="ph__brand" aria-label="Pearson — back to the regulatory workspace">
         <span className="ph__name">Pearson</span>
         <span className="ph__kicker">{kicker}</span>
       </Link>

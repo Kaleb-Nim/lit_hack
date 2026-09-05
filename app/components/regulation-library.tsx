@@ -110,13 +110,14 @@ export function RegulationLibrary({ onClose }: { onClose: () => void }) {
         </aside>
 
         {selected && <section className="registry-detail">
-          <div className="registry-heading"><div><div className="official-label"><span />CURRENT · OFFICIAL SOURCE</div><h2>{selected.title}</h2><p>{selected.id} · Current version as at {selected.currentAsAt ?? currentVersion?.effectiveDate ?? "source sync"}</p></div><a href={selected.sourceUrl} target="_blank" rel="noreferrer">Open on SSO <ExternalLink size={13} /></a></div>
+          <div className="registry-heading"><div><div className="official-label"><span />{selected.status.toUpperCase()} · OFFICIAL SOURCE</div><h2>{selected.title}</h2><p>{selected.id} · Source status as at {selected.currentAsAt ?? currentVersion?.effectiveDate ?? "source sync"}</p></div><a href={selected.sourceUrl} target="_blank" rel="noreferrer">Open on SSO <ExternalLink size={13} /></a></div>
 
           <div className="version-compare">
             <div className="compare-heading"><div><FileDiff size={15} />VERSION COMPARISON</div><span>Official versions are immutable</span></div>
-            <div className="compare-grid">
+            {selected.id === "PDPA2012" && <div className="compare-grid">
               <div><small>PAST VERSION</small><strong>{comparison?.sourceDocuments[0]?.effectiveDate ?? previousVersion?.effectiveDate ?? "No earlier snapshot"}</strong><p>{comparison?.sourceDocuments[0]?.label ?? previousVersion?.basis}</p>{comparison?.sourceDocuments[0] && <a href={comparison.sourceDocuments[0].sourceUrl} target="_blank" rel="noreferrer">Open official text <ExternalLink size={11} /></a>}</div><ArrowRight size={18} /><div className="present-version"><small>PRESENT VERSION</small><strong>{comparison?.sourceDocuments[1]?.effectiveDate ?? currentVersion?.effectiveDate}</strong><p>{comparison?.sourceDocuments[1]?.label ?? currentVersion?.basis}</p>{comparison?.sourceDocuments[1] && <a href={comparison.sourceDocuments[1].sourceUrl} target="_blank" rel="noreferrer">Open official text <ExternalLink size={11} /></a>}</div>
-            </div>
+            </div>}
+            {selected.id === "WFA2025" && <div className="verified-change"><span><Clock3 size={14} /></span><div><small>READINESS STATUS</small><strong>Passed, published and not yet in force</strong><p>Use this record to prepare employment documents and processes. Do not label a current document as breaching the WFA until the relevant provisions commence.</p><em>Official SSO status: uncommenced</em></div><a href={selected.sourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={13} /></a></div>}
             {selected.id === "PDPA2012" && <div className="ai-comparison">
               <div className="ai-comparison-head"><div><Sparkles size={15} /><span>PDPA CHANGE SUMMARY</span>{comparison && <em>{comparison.generatedBy === "openai" ? `OPENAI · ${comparison.model}` : "VERIFIED BASELINE"}</em>}</div><button onClick={generateComparison} disabled={comparisonState === "generating"}>{comparisonState === "generating" ? <LoaderCircle size={13} /> : <Sparkles size={13} />}{comparison?.generatedBy === "openai" ? "Refresh AI summary" : "Generate with OpenAI"}</button></div>
               {comparisonState === "loading" && <div className="comparison-loading"><LoaderCircle size={16} />Loading PDPA comparison</div>}

@@ -1,7 +1,7 @@
-# Pearson — Regulatory Impact Review
+# Pearson — Regulatory Workspace
 
-Trace sourced Singapore regulatory changes through affected contracts, decide each proposed
-edit, sign the document, and maintain the underlying regulation history.
+Trace sourced Singapore regulatory changes through contracts stored in Cloudflare R2. Lawyers can
+edit a browser-only Word working copy and download it without changing the source object.
 
 Built for the SMU LIT Hackathon 2026 (PS4 — *Designing a Sustainable and Resilient LegalTech*).
 Next.js 16 App Router, React 19, Tailwind 4 and Bun. The review corpus in
@@ -20,11 +20,12 @@ bun run build && bun run start
 
 | Step | Route | What happens |
 | --- | --- | --- |
-| 1 | `/` | Summary of the amendment and the five key pointers (obligations). |
-| 2 | `/review/[docId]` | Clause-by-clause redline: original vs AI-revised, Accept / Reject (also `Y` / `N`, `↓` / `↑`). |
-| 3 | `/review/[docId]/final` | Full document with decisions applied. Sign it, then **Save / download**, or **Find all similar cases & run**. |
-| 4 | `/files` | Affected-files explorer. Tick files, run the review, and the first document opens with the rest queued. |
-| 5 | `/resilience` | Regulatory knowledge graph, R2 contracts, historical versions, and PDPA comparison. |
+| 1 | `/` | Shared legal workspace for PDPA and the Workplace Fairness Act. |
+| 2 | `/regulations/pdpa` | Verified PDPA history, impact summary, and downloadable memo. |
+| 3 | `/regulations/wfa` | Workplace Fairness Act readiness view, clearly marked uncommenced. |
+| 4 | `/contracts` | Live contract library read from R2 and filtered by regulation. |
+| 5 | `/contracts/[...key]` | Edit a `.docx` working copy in browser memory and download a new Word file. |
+| 6 | `/resilience` | Regulatory knowledge graph, historical versions, and dependency review. |
 
 Every "Back" control is a real link, so the browser Back button works too. Decisions and
 signatures are kept in `sessionStorage` for the tab, so navigating back and forth or refreshing
@@ -60,7 +61,11 @@ The application keeps official legislation separate from editable company analys
 
 Singapore Statutes Online permits automated extraction only from 03:00 to 07:00 Singapore time. The sync route enforces that window and returns HTTP 423 without contacting SSO outside it. Schedule one controlled daily sync in that window; do not invoke it from the browser or on every request.
 
-The checked-in starter record is a sourced PDPA timeline so the interface remains useful before the first catalogue sync. Other instruments receive their official title and URL during the catalogue sync; detailed historical versions should be added by a separately throttled hydration job as they are selected or tracked.
+The checked-in starter records contain sourced PDPA and Workplace Fairness Act timelines so the interface remains useful before the first catalogue sync. Other instruments receive their official title and URL during the catalogue sync; detailed historical versions should be added by a separately throttled hydration job as they are selected or tracked.
+
+## Contract working copies
+
+`GET /api/contracts` lists source objects and marks modern `.docx` files as editable. `GET /api/contracts/[...key]` streams the original object. There is intentionally no contract write endpoint. The browser opens `word/document.xml` from the downloaded package, applies text edits to a new in-memory package, and downloads `<name>_Pearson_working_copy.docx`. PDFs and legacy `.doc` files remain read-only source documents.
 
 The same sync caches the PDPA texts effective 2 January 2021 and 5 December 2025 under `Regulations/sources/PDPA2012/`. The regulation workspace displays a verified baseline comparison immediately. With `OPENAI_API_KEY` set server-side, `POST /api/regulations/PDPA2012/comparison` uses the OpenAI Responses API to create a structured summary from those cached texts and stores the result under `Regulations/comparisons/PDPA2012/`. If the source snapshots are not cached yet, the AI is limited to the verified amendment records and the interface says so explicitly.
 

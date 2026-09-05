@@ -48,8 +48,8 @@ function ReviewShell({
         position={position}
         actions={
           <>
-            <Link href="/" className="btn btn--outline-light">
-              ← Back to summary
+            <Link href="/regulations/pdpa" className="btn btn--outline-light">
+              ← Back to PDPA
             </Link>
             <Link href={finalHref} className="btn btn--gold">
               Open full document →
@@ -57,7 +57,7 @@ function ReviewShell({
           </>
         }
       />
-      <FlowSteps current="clauses" hrefs={{ summary: "/" }} />
+      <FlowSteps current="clauses" hrefs={{ summary: "/regulations/pdpa" }} />
 
       <main className="shell__main review">{children}</main>
 

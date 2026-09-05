@@ -64,7 +64,7 @@ export function FinalDocumentView({ doc }: { doc: ReviewDocument }) {
           </Link>
         }
       />
-      <FlowSteps current="document" hrefs={{ summary: "/", clauses: clausesHref }} />
+      <FlowSteps current="document" hrefs={{ summary: "/regulations/pdpa", clauses: clausesHref }} />
 
       <main className="shell__main review">
         <section className="final" aria-label="Full document">
@@ -193,8 +193,8 @@ export function FinalDocumentView({ doc }: { doc: ReviewDocument }) {
                 </span>
               )}
               <div className="tally__actions">
-                <Link href={`/files?similar=${doc.id}`} className="btn btn--gold">
-                  Find all similar cases &amp; run →
+                <Link href="/contracts?regulation=PDPA2012" className="btn btn--gold">
+                  Open R2 contract library →
                 </Link>
                 {next && (
                   <Link href={`/review/${next}`} className="btn btn--navy">

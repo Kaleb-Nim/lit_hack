@@ -28,7 +28,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "Pearson — Regulatory Impact Review",
+  title: "Pearson — Regulatory Workspace",
   description:
     "Trace verified Singapore regulatory changes through affected contracts, review proposed edits, and maintain a regulatory audit trail.",
 };

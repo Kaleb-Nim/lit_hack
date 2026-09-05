@@ -13,8 +13,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
     if (!response.ok || !response.body) return new Response("Contract not found", { status: response.status });
     const headers = new Headers();
     headers.set("content-type", response.headers.get("content-type") ?? "application/octet-stream");
-    headers.set("content-disposition", response.headers.get("content-disposition") ?? `inline; filename="${keyParts.at(-1)}"`);
+    const fileName = keyParts.at(-1)?.replace(/["\r\n]/g, "") ?? "contract";
+    headers.set("content-disposition", `inline; filename="${fileName}"`);
     headers.set("cache-control", "private, max-age=60");
+    headers.set("x-content-type-options", "nosniff");
     return new Response(response.body, { headers });
   } catch {
     return new Response("Contract could not be loaded", { status: 502 });

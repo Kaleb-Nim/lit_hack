@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity, ArrowRight, Bell, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, Search, Settings, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, Bot, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ChevronRight, CirclePause, CirclePlay, Clock3, Cloud, ExternalLink, FileText, GitBranch, History, LayoutGrid, Network, Pause, Play, RefreshCw, Scale, ShieldCheck, Sparkles, TimerReset, Workflow, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RegulationLibrary } from "@/app/components/regulation-library";
 
@@ -112,19 +113,15 @@ export default function Home() {
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <div className="sidebar-brand"><span><GitBranch size={17} /></span><strong>Pearson</strong></div>
+        <Link href="/" className="sidebar-brand"><span><GitBranch size={17} /></span><strong>Pearson</strong></Link>
         <nav aria-label="Primary navigation">
           <small>WORKSPACE</small>
           <button className="active"><LayoutGrid size={16} /><span>Resilience</span></button>
-          <button><Network size={16} /><span>Knowledge graph</span><em>24</em></button>
+          <button onClick={traceImpact}><Network size={16} /><span>Knowledge graph</span><em>24</em></button>
           <button onClick={() => setRegulationsOpen(true)}><Activity size={16} /><span>Regulatory history</span><em className="alert-count">1</em></button>
           <small>LEGAL OPERATIONS</small>
-          <button><FileText size={16} /><span>Company assets</span></button>
-          <button><BriefcaseBusiness size={16} /><span>Review queue</span><em>4</em></button>
-          <button><History size={16} /><span>Audit trail</span></button>
-          <small>ADMINISTRATION</small>
-          <button><ShieldCheck size={16} /><span>Controls</span></button>
-          <button><Settings size={16} /><span>Settings</span></button>
+          <Link href="/contracts"><FileText size={16} /><span>Company assets</span></Link>
+          <Link href="/contracts?regulation=PDPA2012"><BriefcaseBusiness size={16} /><span>Review queue</span><em>4</em></Link>
         </nav>
         <div className="sidebar-footer"><div className="workspace-card"><span>AC</span><div><strong>Atlas Consulting</strong><small>Singapore workspace</small></div><ChevronDown size={14} /></div><div className="sidebar-user"><span>SL</span><div><strong>Sarah Lim</strong><small>Legal counsel</small></div><ChevronRight size={14} /></div></div>
       </aside>
@@ -132,7 +129,7 @@ export default function Home() {
       <div className="main-stage">
         <header className="topbar">
           <div className="breadcrumbs"><span>Atlas Consulting</span><ChevronRight size={13} /><strong>Regulatory resilience</strong></div>
-          <div className="topbar-actions"><button className="search-button"><Search size={15} /><span>Search workspace</span><kbd>⌘ K</kbd></button><button className="icon-button" aria-label="Notifications"><Bell size={16} /><i /></button><button className="ask-button"><Sparkles size={14} />Ask Pearson</button></div>
+          <div className="topbar-actions"><Link className="search-button" href="/"><LayoutGrid size={15} /><span>Main workspace</span></Link><Link className="ask-button" href="/contracts"><FileText size={14} />Contract library</Link></div>
         </header>
 
       <section className="content">
