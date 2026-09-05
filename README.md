@@ -1,39 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pearson — Regulatory Impact Review
 
-## Getting Started
+Trace sourced Singapore regulatory changes through affected contracts, decide each proposed
+edit, sign the document, and maintain the underlying regulation history.
 
-First, run the development server:
+Built for the SMU LIT Hackathon 2026 (PS4 — *Designing a Sustainable and Resilient LegalTech*).
+Next.js 16 App Router, React 19, Tailwind 4 and Bun. The review corpus in
+`lib/review/documents.ts` is demonstration content; regulation metadata comes from Singapore
+Statutes Online, contracts come from Cloudflare R2, and optional summaries use the OpenAI API.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+bun run dev        # http://localhost:3000
+bun run build && bun run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## The flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Step | Route | What happens |
+| --- | --- | --- |
+| 1 | `/` | Summary of the amendment and the five key pointers (obligations). |
+| 2 | `/review/[docId]` | Clause-by-clause redline: original vs AI-revised, Accept / Reject (also `Y` / `N`, `↓` / `↑`). |
+| 3 | `/review/[docId]/final` | Full document with decisions applied. Sign it, then **Save / download**, or **Find all similar cases & run**. |
+| 4 | `/files` | Affected-files explorer. Tick files, run the review, and the first document opens with the rest queued. |
+| 5 | `/resilience` | Regulatory knowledge graph, R2 contracts, historical versions, and PDPA comparison. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Every "Back" control is a real link, so the browser Back button works too. Decisions and
+signatures are kept in `sessionStorage` for the tab, so navigating back and forth or refreshing
+does not lose them. Unknown document ids return a 404 page; downloads that the browser blocks
+show an inline note instead of failing silently.
 
-## Learn More
+## Where things live
 
-To learn more about Next.js, take a look at the following resources:
+| Path | Role |
+| --- | --- |
+| `lib/pdpa/data.ts` | The regulation summary, five obligations, eleven affected files, and the `docId` slugs. |
+| `lib/review/documents.ts` | Clause fixtures per document (`before \| replaced \| after`). |
+| `lib/review/provider.tsx` | Cross-route review state (`useReview()`), mirrored to `sessionStorage`. |
+| `components/` | Shared header, step breadcrumb, and the review workspace pieces. |
+| `docs/agents/flow-contract.md` | The route and ownership contract the pages were built against. |
+| `docs/demo-corpus/`, `docs/sources/`, `docs/strategy/` | Hackathon research, the redacted demo corpus, and the pitch material. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The repo is linked to the `lit_hack` project on Vercel. From the repo root:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+vercel deploy --prod
+```
 
 ## Singapore regulation registry
 
@@ -52,3 +67,5 @@ The same sync caches the PDPA texts effective 2 January 2021 and 5 December 2025
 `OPENAI_API_KEY` must remain in `.env.local` or the deployment secret store and must never be exposed through a `NEXT_PUBLIC_` variable. `OPENAI_MODEL` is optional and defaults to `gpt-5-mini`.
 
 The R2 credentials must be server-only. Catalogue sync and internal notes require write access to the `Regulations/` prefix; a read-only key can still serve contracts and previously cached regulation data.
+
+Configure production secrets in the Vercel dashboard or with `vercel env add`; never commit `.env.local`.

@@ -65,7 +65,6 @@ export default function Home() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setR2State("loading");
     fetch("/api/contracts", { signal: controller.signal, cache: "no-store" })
       .then(async (response) => {
         const data = await response.json() as { contracts?: R2Contract[]; error?: string };
@@ -100,6 +99,7 @@ export default function Home() {
   const displayedAssetIds = r2State === "connected" ? impactedAssets.slice(0, Math.min(r2Contracts.length, impactedAssets.length)) : impactedAssets;
 
   function traceImpact() { setTraceActive(true); setSelectedId("amendment"); graphRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  function refreshContracts() { setR2State("loading"); setR2Message(""); setSyncNonce((value) => value + 1); }
   function openReview(id: string) { setReviewAssetId(id); setManualEdit(false); setDecision(null); setTimerSeconds(0); setTimerRunning(false); setFinishedTime(null); setApplySimilar(false); }
   function finishReview() { setTimerRunning(false); setFinishedTime(timerSeconds); }
   function acceptChange() {
@@ -138,7 +138,7 @@ export default function Home() {
       <section className="content">
         <div className="page-heading">
           <div><div className="eyebrow"><Activity size={13} /> LIVE DEPENDENCY MODEL</div><h1>Regulatory resilience</h1><p>Trace legal changes through every policy, contract and operational rule they govern.</p></div>
-          <button className={`sync-state ${r2State}`} onClick={() => setSyncNonce((value) => value + 1)} title={r2Message}><span className="live-dot" /><Cloud size={13} />{r2State === "connected" ? "R2 contracts connected" : r2State === "loading" ? "Syncing R2 contracts" : "R2 setup required"}<small>{r2State === "connected" ? `${r2Contracts.length} objects` : "View setup"}</small><RefreshCw size={12} /></button>
+          <button className={`sync-state ${r2State}`} onClick={refreshContracts} title={r2Message}><span className="live-dot" /><Cloud size={13} />{r2State === "connected" ? "R2 contracts connected" : r2State === "loading" ? "Syncing R2 contracts" : "R2 setup required"}<small>{r2State === "connected" ? `${r2Contracts.length} objects` : "View setup"}</small><RefreshCw size={12} /></button>
         </div>
 
         <div className="metric-grid">
