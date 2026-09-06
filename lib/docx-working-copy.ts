@@ -43,7 +43,13 @@ export async function buildWorkingCopy(source: ArrayBuffer, edits: Map<number, s
     nodes.slice(1).forEach((node) => { node.textContent = ""; });
   });
   const body = document.getElementsByTagNameNS(WORD_NS, "body")[0];
-  const sectionProperties = body?.getElementsByTagNameNS(WORD_NS, "sectPr")[0];
+  // A document with section breaks carries a w:sectPr inside the w:pPr of the paragraph
+  // that ends each section, and the final one as a direct child of w:body. A descendant
+  // search returns the paragraph-nested one first, and insertBefore then throws because
+  // that node is not a child of the body. Take the body's own child.
+  const sectionProperties = body
+    ? Array.from(body.children).find((element) => element.localName === "sectPr" && element.namespaceURI === WORD_NS)
+    : undefined;
   insertions.filter((value) => value.trim()).forEach((value) => {
     const paragraph = document.createElementNS(WORD_NS, "w:p");
     const run = document.createElementNS(WORD_NS, "w:r");
