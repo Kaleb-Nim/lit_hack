@@ -1,21 +1,12 @@
 import JSZip from "jszip";
 import { sanitizeDraft, type LawChangeDraft } from "@/lib/regulation-intake";
+import { createResponse, incompleteReason, responseText } from "@/lib/openai-responses";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const allowedDomains = ["sso.agc.gov.sg", "mom.gov.sg", "pdpc.gov.sg", "mddi.gov.sg", "parliament.gov.sg"];
-
-function outputText(response: Record<string, unknown>) {
-  if (typeof response.output_text === "string") return response.output_text;
-  const output = Array.isArray(response.output) ? response.output : [];
-  for (const item of output as Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>) {
-    const text = item.content?.find((part) => part.type === "output_text")?.text;
-    if (text) return text;
-  }
-  return "";
-}
 
 async function docxText(file: File) {
   const archive = await JSZip.loadAsync(await file.arrayBuffer());
@@ -59,30 +50,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" }, body: JSON.stringify({
+    const data = await createResponse(apiKey, {
       model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
       instructions: "You are a Singapore regulatory research assistant supporting lawyers. Return a cautious research draft, not legal advice. Cite only official sources from the allowed domains.",
       input: [{ role: "user", content }],
       tools: [{ type: "web_search", filters: { allowed_domains: allowedDomains }, search_context_size: "high" }],
       tool_choice: "auto", max_tool_calls: 8, include: ["web_search_call.action.sources"], store: false,
       text: { format: { type: "json_schema", name: "law_change_research", strict: true, schema } },
-    }) });
-    const data = await response.json() as Record<string, unknown>;
-    if (!response.ok) {
-      const message = (data.error as { message?: string } | undefined)?.message;
-      throw new Error(message || `OpenAI returned ${response.status}`);
-    }
-    if (data.status === "incomplete") {
-      const reason = (data.incomplete_details as { reason?: string } | undefined)?.reason;
-      throw new Error(reason === "max_output_tokens" ? "The research response was too long to finish. Narrow the description or attach a shorter source." : `The research stopped before finishing (${reason ?? "unknown reason"}).`);
-    }
-    const text = outputText(data);
+    });
+    const reason = incompleteReason(data);
+    if (reason) throw new Error(reason === "max_output_tokens" ? "The research response was too long to finish. Narrow the description or attach a shorter source." : `The research stopped before finishing (${reason}).`);
+    const text = responseText(data);
     if (!text) throw new Error("OpenAI returned no research summary.");
     const draft = sanitizeDraft(JSON.parse(text) as LawChangeDraft);
     if (draft.sources.length === 0) draft.caveats.unshift("No allowed official source URL was returned; do not save this draft until a source is confirmed.");
     return Response.json({ draft, model: process.env.OPENAI_MODEL ?? "gpt-5-mini" });
   } catch (error) {
-    console.error("Regulatory discovery failed", error);
+    console.error("Regulatory discovery failed", error, (error as { cause?: unknown } | null)?.cause);
     return Response.json({ error: error instanceof Error ? error.message : "Regulatory research failed." }, { status: 502 });
   }
 }

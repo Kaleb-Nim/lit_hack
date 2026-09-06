@@ -7,14 +7,10 @@ import {
   writePdpaComparison,
   type PdpaComparison,
 } from "@/lib/pdpa-comparison";
+import { createResponse, incompleteReason, responseRefusal, responseText } from "@/lib/openai-responses";
 
 export const dynamic = "force-dynamic";
-
-type OpenAIResponse = {
-  status?: string;
-  error?: { message?: string };
-  output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string; refusal?: string }> }>;
-};
+export const maxDuration = 300;
 
 async function sourceState() {
   const [before, current] = await Promise.all([
@@ -85,37 +81,35 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     additionalProperties: false,
   };
 
+  // The comparison reasons over up to 100k characters of statute text, so it can
+  // run for minutes. Allow for that rather than cutting a working call short.
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000);
+  const timeout = setTimeout(() => controller.abort(), 240000);
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        input: [
-          {
-            role: "system",
-            content: "You are a Singapore regulatory change analyst. Compare only the supplied PDPA evidence. Be precise, concise and neutral. Distinguish legal text from operational implications. Do not invent sections, dates, duties or URLs. This is a summary, not legal advice.",
-          },
-          {
-            role: "user",
-            content: `Compare the Personal Data Protection Act 2012 version effective ${pdpaComparisonDates.before} with the version effective ${pdpaComparisonDates.current}.\n\nSOURCE COVERAGE: ${hasOfficialText ? "Cached official SSO text from both dates" : "Verified amendment records; full SSO text snapshots are not cached yet"}\n\nTEXT PRESENT BEFORE BUT NOT CURRENT:\n${evidence.removed}\n\nTEXT PRESENT CURRENT BUT NOT BEFORE:\n${evidence.added}\n\nAllowed source URLs (use only these):\n${allowedSources.join("\n")}`,
-          },
-        ],
-        max_output_tokens: 4000,
-        text: { format: { type: "json_schema", name: "pdpa_comparison", strict: true, schema } },
-      }),
-    });
-    const payload = await response.json() as OpenAIResponse;
-    if (!response.ok) return Response.json({ error: payload.error?.message ?? "OpenAI could not generate the comparison." }, { status: 502 });
-    const content = payload.output?.flatMap((item) => item.content ?? []).find((item) => item.type === "output_text");
-    if (!content?.text) {
-      const refusal = payload.output?.flatMap((item) => item.content ?? []).find((item) => item.type === "refusal")?.refusal;
-      return Response.json({ error: refusal ?? "OpenAI returned no comparison." }, { status: 502 });
-    }
-    const generated = JSON.parse(content.text) as Pick<PdpaComparison, "headline" | "executiveSummary" | "changes" | "businessImpact" | "caveats">;
+    const response = await createResponse(apiKey, {
+      model,
+      input: [
+        {
+          role: "system",
+          content: "You are a Singapore regulatory change analyst. Compare only the supplied PDPA evidence. Be precise, concise and neutral. Distinguish legal text from operational implications. Do not invent sections, dates, duties or URLs. This is a summary, not legal advice.",
+        },
+        {
+          role: "user",
+          content: `Compare the Personal Data Protection Act 2012 version effective ${pdpaComparisonDates.before} with the version effective ${pdpaComparisonDates.current}.\n\nSOURCE COVERAGE: ${hasOfficialText ? "Cached official SSO text from both dates" : "Verified amendment records; full SSO text snapshots are not cached yet"}\n\nTEXT PRESENT BEFORE BUT NOT CURRENT:\n${evidence.removed}\n\nTEXT PRESENT CURRENT BUT NOT BEFORE:\n${evidence.added}\n\nAllowed source URLs (use only these):\n${allowedSources.join("\n")}`,
+        },
+      ],
+      // A reasoning model spends this budget on its own reasoning before it
+      // writes anything, and five changes with before/now wording is not a
+      // small answer. At 4000 the response was cut off mid-JSON and the parse
+      // below failed as an opaque 502.
+      max_output_tokens: 32000,
+      text: { format: { type: "json_schema", name: "pdpa_comparison", strict: true, schema } },
+    }, controller.signal);
+    const reason = incompleteReason(response);
+    if (reason) return Response.json({ error: reason === "max_output_tokens" ? "The comparison was too long to finish. Cache the official texts and try again." : `The comparison stopped before finishing (${reason}).` }, { status: 502 });
+    const text = responseText(response);
+    if (!text) return Response.json({ error: responseRefusal(response) || "OpenAI returned no comparison." }, { status: 502 });
+    const generated = JSON.parse(text) as Pick<PdpaComparison, "headline" | "executiveSummary" | "changes" | "businessImpact" | "caveats">;
     const safeSources = new Set(allowedSources);
     const comparison: PdpaComparison = {
       ...verifiedPdpaComparison,
@@ -134,7 +128,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
     return Response.json({ comparison: withSourceState(comparison, before, current), aiConfigured: true });
   } catch (error) {
-    return Response.json({ error: error instanceof Error && error.name === "AbortError" ? "OpenAI request timed out." : "OpenAI comparison failed." }, { status: 502 });
+    console.error("PDPA comparison failed", error, (error as { cause?: unknown } | null)?.cause);
+    if (error instanceof Error && error.name === "AbortError") return Response.json({ error: "OpenAI request timed out." }, { status: 502 });
+    return Response.json({ error: error instanceof Error ? error.message : "OpenAI comparison failed." }, { status: 502 });
   } finally {
     clearTimeout(timeout);
   }

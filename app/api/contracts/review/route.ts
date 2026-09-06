@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { getR2Object } from "@/lib/r2";
 import { isRegulationId, regulationById } from "@/lib/regulatory-workspace";
 import { readCachedReview, writeCachedReview } from "@/lib/contract-review-server-cache";
+import { createResponse, incompleteReason, responseText } from "@/lib/openai-responses";
 import type { ContractParagraph, ContractReviewResult } from "@/lib/contract-review-model";
 
 export const dynamic = "force-dynamic";
@@ -22,16 +23,6 @@ const allowedHosts = new Set([...allowedDomains, ...allowedDomains.map((domain) 
 
 function isAllowedSource(value: string) {
   try { return allowedHosts.has(new URL(value).hostname.toLowerCase()); } catch { return false; }
-}
-
-function outputText(response: Record<string, unknown>) {
-  if (typeof response.output_text === "string") return response.output_text;
-  const output = Array.isArray(response.output) ? response.output : [];
-  for (const item of output as Array<{ content?: Array<{ type?: string; text?: string }> }>) {
-    const text = item.content?.find((part) => part.type === "output_text")?.text;
-    if (text) return text;
-  }
-  return "";
 }
 
 async function extractDocxParagraphs(bytes: Uint8Array): Promise<ContractParagraph[]> {
@@ -95,19 +86,15 @@ export async function POST(request: Request) {
     const content: Array<Record<string, string>> = [{ type: "input_text", text: `Review this contract against ${regulation.title}. The official source is ${regulation.sourceUrl}. ${regulation.summary}\n\nIdentify only material clauses affected by the verified legal position. Suggest complete replacement wording for amendments. For a missing clause, use action insert. For uncertainty, use action review. Do not invent obligations or commencement dates. Search official Singapore sources and distinguish current obligations from future readiness. ${extension === "docx" ? `You are reviewing the opening section of the contract (paragraphs 0-${Math.max(0, reviewParagraphs.length - 1)} of ${knownParagraphs.length}). Use the exact paragraph indexes below and preserve the original meaning where no change is needed:\n${annotatedText}` : `Extract only the first ${REVIEW_PARAGRAPH_LIMIT} paragraphs of the PDF in clean reading order with stable zero-based indexes, then map every suggestion to the closest of those paragraphs.`}` }];
     if (extension === "pdf") content.push({ type: "input_file", filename: key.split("/").at(-1) ?? "contract.pdf", file_data: `data:application/pdf;base64,${Buffer.from(bytes).toString("base64")}` });
 
-    const aiResponse = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" }, body: JSON.stringify({
+    const raw = await createResponse(apiKey, {
       model: process.env.OPENAI_MODEL ?? "gpt-5-mini", store: false,
       instructions: "You are a cautious Singapore contract-review assistant supporting a qualified lawyer. Produce drafting suggestions, not a final legal opinion. Use only official Singapore government sources.",
       input: [{ role: "user", content }], tools: [{ type: "web_search", filters: { allowed_domains: allowedDomains }, search_context_size: "high" }], tool_choice: "auto", max_tool_calls: 8, max_output_tokens: 48000,
       text: { format: { type: "json_schema", name: "contract_regulatory_review", strict: true, schema } },
-    }) });
-    const raw = await aiResponse.json() as Record<string, unknown>;
-    if (!aiResponse.ok) throw new Error((raw.error as { message?: string } | undefined)?.message ?? `OpenAI returned ${aiResponse.status}`);
-    if (raw.status === "incomplete") {
-      const reason = (raw.incomplete_details as { reason?: string } | undefined)?.reason;
-      throw new Error(reason === "max_output_tokens" ? "This contract is too long to review in one pass. Review a shorter document or split it into sections." : `The review stopped before finishing (${reason ?? "unknown reason"}).`);
-    }
-    const parsed = JSON.parse(outputText(raw)) as Omit<ContractReviewResult, "model">;
+    });
+    const reason = incompleteReason(raw);
+    if (reason) throw new Error(reason === "max_output_tokens" ? "This contract is too long to review in one pass. Review a shorter document or split it into sections." : `The review stopped before finishing (${reason}).`);
+    const parsed = JSON.parse(responseText(raw)) as Omit<ContractReviewResult, "model">;
     const paragraphs = extension === "docx" ? knownParagraphs : parsed.paragraphs.map((paragraph, index) => ({ index, text: String(paragraph.text ?? "") })).filter((paragraph) => paragraph.text.trim()).slice(0, 1200);
     const validIndexes = new Set(paragraphs.map((paragraph) => paragraph.index));
     const suggestions = parsed.suggestions.slice(0, 20).map((item, index) => ({ ...item, id: item.id || `suggestion-${index}`, paragraphIndex: Number(item.paragraphIndex), sourceUrl: isAllowedSource(item.sourceUrl) ? item.sourceUrl : regulation.sourceUrl })).filter((item) => item.action !== "amend" || validIndexes.has(item.paragraphIndex));
