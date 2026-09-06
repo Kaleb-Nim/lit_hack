@@ -18,11 +18,11 @@ interface Props {
  * The navy top bar shared by every route. The brand always links home so
  * there is a deterministic way back from any step.
  */
-export function PearsonHeader({ kicker, title, meta, position, actions }: Props) {
+export function LarpHeader({ kicker, title, meta, position, actions }: Props) {
   return (
     <header className="ph">
-      <Link href="/" className="ph__brand" aria-label="Pearson — back to the regulatory workspace">
-        <span className="ph__name">Pearson</span>
+      <Link href="/" className="ph__brand" aria-label="L.A.R.P — back to the regulatory workspace">
+        <span className="ph__name">L.A.R.P</span>
         <span className="ph__kicker">{kicker}</span>
       </Link>
       <span className="ph__divider" />

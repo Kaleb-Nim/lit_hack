@@ -27,7 +27,7 @@ async function fetchCategory(kind: "act" | "subsidiary-legislation", browseStatu
   const records = new Map<string, RegulationRecord>();
   for (let page = 1; page <= 20; page++) {
     const url = `${SSO}/Browse/${segment}/${browseStatus}/All/${page}?PageSize=${pageSize}&SortBy=Title&SortOrder=ASC`;
-    const response = await fetch(url, { headers: { "user-agent": "Pearson-Regulatory-Snapshot/1.0 (+manual administrator sync)" }, cache: "no-store" });
+    const response = await fetch(url, { headers: { "user-agent": "LARP-Regulatory-Snapshot/1.0 (+manual administrator sync)" }, cache: "no-store" });
     if (!response.ok) throw new Error(`SSO returned ${response.status} for ${segment} page ${page}`);
     const previousCount = records.size;
     const pageRecords = parseInstruments(await response.text(), kind, status);
@@ -44,7 +44,7 @@ async function syncPdpaSnapshots() {
   for (const effectiveDate of [pdpaComparisonDates.before, pdpaComparisonDates.current]) {
     const sourceUrl = `${SSO}/Act/PDPA2012?DocDate=${effectiveDate.replaceAll("-", "")}`;
     try {
-      const response = await fetch(sourceUrl, { headers: { "user-agent": "Pearson-Regulatory-Snapshot/1.0 (+manual administrator sync)" }, cache: "no-store" });
+      const response = await fetch(sourceUrl, { headers: { "user-agent": "LARP-Regulatory-Snapshot/1.0 (+manual administrator sync)" }, cache: "no-store" });
       if (!response.ok) throw new Error(`SSO returned ${response.status}`);
       const text = extractLegalText(await response.text());
       if (text.length < 1000) throw new Error("SSO returned too little legal text");

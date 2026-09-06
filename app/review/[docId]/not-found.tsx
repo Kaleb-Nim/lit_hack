@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { FlowSteps } from "@/components/flow-steps";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { REGULATION } from "@/lib/pdpa/data";
 
 export default function ReviewNotFound() {
   return (
     <div className="shell">
-      <PearsonHeader
+      <LarpHeader
         kicker="Contract review"
         title="Document not found"
         meta={REGULATION.matter}

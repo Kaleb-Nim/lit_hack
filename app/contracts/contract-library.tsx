@@ -3,7 +3,7 @@
 import { Building2, ChevronDown, Cloud, ExternalLink, FileText, GitBranch, LoaderCircle, Search, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { cacheContractReview, readCachedContractReview } from "@/lib/contract-review-cache";
 import type { ContractReviewResult } from "@/lib/contract-review-model";
 import { DOCUMENT_TYPES } from "@/lib/contract-metadata";
@@ -88,7 +88,7 @@ export function ContractLibrary({ initialRegulation }: { initialRegulation: Regu
   }
 
   return <div className="shell">
-    <PearsonHeader kicker="Contract review" title={regulation.shortName} meta={`${regulation.title} · priority workspace`} actions={<Link href="/" className="btn btn--outline-light">← Main workspace</Link>} />
+    <LarpHeader kicker="Contract review" title={regulation.shortName} meta={`${regulation.title} · priority workspace`} actions={<Link href="/" className="btn btn--outline-light">← Main workspace</Link>} />
     <main className="contracts-page">
       <div className="contracts-page__head"><div><span className="eyebrow">Integrated R2 review workspace</span><h1>Dependency and priority queue</h1><p>Trace the regulation to affected files, run parallel AI checks, then review proposed wording with a timed Git-style comparison.</p></div><div className="source-lock"><ShieldCheck size={17} /><span><strong>No write-back</strong>R2 sources remain unchanged</span></div></div>
       <section className="review-command-bar">

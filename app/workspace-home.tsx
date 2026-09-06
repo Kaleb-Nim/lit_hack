@@ -3,7 +3,7 @@
 import { ArrowRight, BookOpen, CheckCircle2, Cloud, ExternalLink, FilePlus2, FileText, LoaderCircle, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { WORKSPACE_REGULATIONS, contractMatchesRegulation, type RegulationId } from "@/lib/regulatory-workspace";
 
 type Contract = {
@@ -60,7 +60,7 @@ export function WorkspaceHome() {
 
   return (
     <div className="shell">
-      <PearsonHeader
+      <LarpHeader
         kicker="Regulatory workspace"
         title="Singapore legal operations"
         meta="Shared matter intelligence"

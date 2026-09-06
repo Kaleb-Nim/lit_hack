@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { FlowSteps } from "@/components/flow-steps";
 import {
   EXECUTIVE_SUMMARY,
@@ -77,7 +77,7 @@ export default function SummaryPage() {
   const position = `${OBLIGATIONS.length} change areas · ${actionCount} require review · live R2 library`;
   return (
     <div className="shell">
-      <PearsonHeader
+      <LarpHeader
         kicker="Regulatory impact"
         title="Personal Data Protection Act 2012"
         meta="Singapore · current"

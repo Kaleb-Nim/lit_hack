@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { FlowSteps } from "@/components/flow-steps";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { fileStem } from "@/lib/download";
 import { downloadDocx } from "@/lib/docx";
 import { changeById, type ReviewDocument } from "@/lib/review/documents";
@@ -53,7 +53,7 @@ export function FinalDocumentView({ doc }: { doc: ReviewDocument }) {
 
   return (
     <div className="shell">
-      <PearsonHeader
+      <LarpHeader
         kicker="Contract review"
         title={doc.fileName}
         meta={doc.subtitle}

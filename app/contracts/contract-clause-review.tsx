@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, ExternalLink } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { Check } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from "react";
 import { ComparePane } from "@/components/review/compare-pane";
 import { SidePanel } from "@/components/review/side-panel";
 import { useReviewKeys } from "@/components/review/use-review-keys";
@@ -16,6 +16,19 @@ type Props = {
   onAccept: (suggestion: ContractEditSuggestion) => void;
   onReject: (suggestion: ContractEditSuggestion) => void;
   onUpdateAccepted: (suggestion: ContractEditSuggestion) => void;
+  /**
+   * The AI drafting assessment above the redline. The .docx workbench hides
+   * it — the chargeable timer occupies that strip instead — while the PDF
+   * workbench, which has no such strip, still shows it.
+   */
+  showAssessment?: boolean;
+  /** Call to action under the side panel, e.g. "open the full document". */
+  panelFooter?: ReactNode;
+  /**
+   * Filled with the "advance to the next clause" action so chrome outside this
+   * component (the header button) can drive the selection it owns.
+   */
+  nextClauseRef?: MutableRefObject<(() => void) | null>;
 };
 
 function nextId(suggestions: ContractEditSuggestion[], selected: string, delta = 1) {
@@ -28,7 +41,7 @@ function nextId(suggestions: ContractEditSuggestion[], selected: string, delta =
  * model as `/review/[docId]`. Only accepted wording is handed back to the
  * working-copy builder; the R2 source remains read-only.
  */
-function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onReject, onUpdateAccepted }: Props) {
+function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onReject, onUpdateAccepted, showAssessment = true, panelFooter, nextClauseRef }: Props) {
   const suggestions = review.suggestions;
   const [selected, setSelected] = useState(() => suggestions[0]?.id ?? "");
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -57,7 +70,10 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
     sections: [{
       heading: review.documentType || "Proposed amendments",
       clauses: suggestions.map((suggestion, index) => ({
-        number: suggestion.clause || String(index + 1),
+        // The gutter is sized for "1.1". Model clause labels run to a full
+        // sentence, so they go in the side-panel eyebrow and the gutter keeps
+        // a short ordinal.
+        number: String(index + 1),
         before: "",
         after: "",
         changeId: suggestion.id,
@@ -89,6 +105,12 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
 
   useReviewKeys({ active: Boolean(active), onAccept: accept, onReject: reject, onNext: next, onPrev: previous });
 
+  useEffect(() => {
+    if (!nextClauseRef) return;
+    nextClauseRef.current = next;
+    return () => { nextClauseRef.current = null; };
+  }, [next, nextClauseRef]);
+
   if (!active) {
     return <div className="contract-review-empty"><Check size={18} />No material drafting changes were identified.</div>;
   }
@@ -107,16 +129,14 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
 
   return (
     <div className="contract-review-stack">
-      <div className="contract-review-assessment">
+      {showAssessment && <div className="contract-review-assessment">
         <div><span className="eyebrow">AI drafting assessment</span><p>{review.overallAssessment}</p></div>
         <span>{accepted.size + skipped.size} of {suggestions.length} resolved</span>
-      </div>
+      </div>}
       <div className="review contract-clause-review">
         <ComparePane doc={doc} review={docReview} selected={active.id} onSelect={setSelected} onSetStatus={setStatus} onSetText={setText} />
         <div className="contract-review-panel">
-          <SidePanel change={doc.changes.find((change) => change.id === active.id) ?? doc.changes[0]} status={statusFor(active.id)} text={drafts[active.id] ?? active.proposedText} onEditText={(text) => setText(active.id, text)} onAccept={accept} onReject={reject} onNextClause={next} />
-          <a className="contract-review-source" href={active.sourceUrl} target="_blank" rel="noreferrer">{active.legalBasis}<ExternalLink size={12} /></a>
-          <span className={`priority-badge priority-badge--${active.confidence}`}>{active.confidence} priority</span>
+          <SidePanel change={doc.changes.find((change) => change.id === active.id) ?? doc.changes[0]} status={statusFor(active.id)} text={drafts[active.id] ?? active.proposedText} onEditText={(text) => setText(active.id, text)} onAccept={accept} onReject={reject} onNextClause={next} footer={panelFooter} showRationale={showAssessment} />
         </div>
       </div>
     </div>

@@ -2,17 +2,23 @@
 
 import { Check, Download, FileText, LoaderCircle, RotateCcw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { PearsonHeader } from "@/components/pearson-header";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { LarpHeader } from "@/components/larp-header";
 import { downloadBlob, fileStem } from "@/lib/download";
 import { buildWorkingCopy, readDocxParagraphs, type EditableParagraph } from "@/lib/docx-working-copy";
 import { regulationById, type RegulationId } from "@/lib/regulatory-workspace";
 import type { ContractEditSuggestion, ContractReviewResult } from "@/lib/contract-review-model";
 import { cacheContractReview, readCachedContractReview } from "@/lib/contract-review-cache";
 import { ContractClauseReview } from "./contract-clause-review";
+import { ContractFullDocument } from "./contract-full-document";
 import { ReviewSessionTimer } from "./review-session-timer";
 import { ReviewLimitations } from "./review-limitations";
 import { useReviewSession } from "./use-review-session";
+
+function formatClock(seconds: number) {
+  const parts = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60];
+  return parts.map((n) => String(n).padStart(2, "0")).join(":");
+}
 
 export function ContractEditor({ contractKey, regulationId }: { contractKey: string; regulationId: RegulationId }) {
   const [source, setSource] = useState<ArrayBuffer | null>(null);
@@ -24,6 +30,8 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
   const [message, setMessage] = useState("");
   const [review, setReview] = useState<ContractReviewResult | null>(null);
   const [reviewing, setReviewing] = useState(false);
+  /** Clause-by-clause redline, or the working copy read as one document. */
+  const [view, setView] = useState<"redline" | "document">("redline");
   const session = useReviewSession(true);
   const regulation = regulationById(regulationId);
   const fileName = decodeURIComponent(contractKey.split("/").at(-1) ?? "contract.docx");
@@ -63,7 +71,7 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
       const changes = new Map<number, string>();
       Object.entries(edits).forEach(([index, text]) => changes.set(Number(index), text));
       const blob = await buildWorkingCopy(source, changes, Object.values(insertions));
-      const ok = downloadBlob(`${fileStem(fileName)}_Pearson_working_copy.docx`, blob);
+      const ok = downloadBlob(`${fileStem(fileName)}_LARP_working_copy.docx`, blob);
       setMessage(ok ? "Working copy downloaded. The R2 original was not changed." : "The browser blocked the download.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The working copy could not be created.");
@@ -95,21 +103,63 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
     session.recordSuggestion(suggestion.id, "skipped");
   };
 
+  const nextClause = useRef<(() => void) | null>(null);
+
+  const resetEdits = () => { setEdits({}); setInsertions({}); };
+  const resolved = session.accepted.size + session.skipped.size;
+
+  /**
+   * The design's navy call to action under the side panel: the reviewer
+   * finishes the clauses and then reads the whole thing back as one document.
+   */
+  const openFullDocument = <button type="button" className="open-final" onClick={() => setView("document")}>
+    <span>
+      <strong>Open full document</strong>
+      <small>{resolved >= (review?.suggestions.length ?? 0)
+        ? "Every suggestion decided · read it as one document"
+        : "See the working copy with your decisions applied"}</small>
+    </span>
+    <i aria-hidden="true">→</i>
+  </button>;
+
+  const panelFooter = <>
+    {openFullDocument}
+    {review && <ReviewLimitations caveats={review.caveats} />}
+  </>;
+
   return <div className="shell">
-    <PearsonHeader kicker="Word working copy" title={fileName} meta={regulation.shortName} position={`${changedCount} edited`} actions={<><Link href={`/contracts?regulation=${regulationId}`} className="btn btn--outline-light">← Contract library</Link><button className="btn btn--gold" onClick={download} disabled={!source || state === "saving"}><Download size={14} />{state === "saving" ? "Preparing…" : "Download copy"}</button></>} />
-    <main className="editor-page">
-      <aside className="editor-context">
+    <LarpHeader
+      kicker="Word working copy"
+      title={fileName}
+      meta={regulation.shortName}
+      position={review ? undefined : `${changedCount} edited`}
+      actions={review
+        ? <>
+            <span className={`gen-state${reviewing ? " generating" : ""}`}><i />{reviewing ? "Generating" : "Generated"} · {regulation.shortName}</span>
+            <span className="chargeable">
+              <span><small>Chargeable</small><strong>{formatClock(session.elapsedSeconds)}</strong></span>
+              <button onClick={session.running ? session.pause : session.start} disabled={!session.startedAt}>{session.running ? "Pause" : "Resume"}</button>
+            </span>
+            <button className="btn btn--outline-light" onClick={runReview} disabled={reviewing || state === "loading"}>{reviewing ? <LoaderCircle className="spin" size={14} /> : null}Amendments</button>
+            <button className="btn btn--gold" onClick={() => { setView("redline"); nextClause.current?.(); }}>Go to next clause →</button>
+          </>
+        : <>
+            <Link href={`/contracts?regulation=${regulationId}`} className="btn btn--outline-light">← Contract library</Link>
+            <button className="btn btn--gold" onClick={download} disabled={!source || state === "saving"}><Download size={14} />{state === "saving" ? "Preparing…" : "Download copy"}</button>
+          </>} />
+    <main className={`editor-page${review ? " editor-page--review" : ""}`}>
+      {!review && <aside className="editor-context">
         <span className="eyebrow">Review context</span><h1>{regulation.title}</h1><p>{regulation.summary}</p>
         <div className="purity-card"><ShieldCheck size={18} /><div><strong>Original protected</strong><p>This editor only fetched the R2 object with GET. Your text changes stay in browser memory and are applied to a downloaded copy.</p></div></div>
         <button className="btn btn--navy btn--block" onClick={runReview} disabled={reviewing || state === "loading"}>{reviewing ? <LoaderCircle className="spin" size={14} /> : <Sparkles size={14} />}{reviewing ? "Comparing contract…" : review ? "Refresh AI suggestions" : `Suggest ${regulation.shortName} edits`}</button>
-        <p className="ai-processing-note">When you request suggestions, this contract is sent to your configured OpenAI API project for analysis. Pearson requests no response storage.</p>
-        {review && <ReviewLimitations caveats={review.caveats} />}
+        <p className="ai-processing-note">When you request suggestions, this contract is sent to your configured OpenAI API project for analysis. L.A.R.P requests no response storage.</p>
         <a href={sourceUrl} target="_blank" rel="noreferrer" className="btn btn--ghost">Open original source</a>
-      </aside>
+      </aside>}
       <section className={`document-editor${review ? " document-editor--review" : ""}`}>
-        <div className="document-editor__bar"><div><span className="eyebrow">{review ? "Clause review" : "Editable Word text"}</span><strong>{paragraphs.length + Object.keys(insertions).length} paragraphs · {changedCount} changed</strong></div>{!review && <label><Search size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find text" /></label>}<button className="btn btn--ghost btn--sm" onClick={() => { setEdits({}); setInsertions({}); }} disabled={!changedCount}><RotateCcw size={13} />Reset edits</button></div>
+        {!review && <div className="document-editor__bar"><div><span className="eyebrow">Editable Word text</span><strong>{paragraphs.length + Object.keys(insertions).length} paragraphs · {changedCount} changed</strong></div><label><Search size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find text" /></label><button className="btn btn--ghost btn--sm" onClick={resetEdits} disabled={!changedCount}><RotateCcw size={13} />Reset edits</button></div>}
         <div className="document-editor__scroll">
-          {review && <ContractClauseReview review={review} onAccept={applySuggestion} onReject={rejectSuggestion} onUpdateAccepted={applySuggestion} accepted={session.accepted} skipped={session.skipped} />}
+          {review && view === "document" && <ContractFullDocument fileName={fileName} title={review.documentTitle || fileName} subtitle={review.documentType || "Browser working copy"} paragraphs={paragraphs} edits={edits} insertions={insertions} />}
+          {review && view === "redline" && <ContractClauseReview review={review} onAccept={applySuggestion} onReject={rejectSuggestion} onUpdateAccepted={applySuggestion} accepted={session.accepted} skipped={session.skipped} showAssessment={false} panelFooter={panelFooter} nextClauseRef={nextClause} />}
           {state === "loading" && <div className="editor-message"><LoaderCircle className="spin" />Reading the Word document from R2</div>}
           {state === "error" && <div className="editor-message">{message}</div>}
           {!review && (state === "ready" || state === "saving") && <article className="word-paper">
@@ -122,12 +172,24 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
             {Object.entries(insertions).map(([id, value], index) => <div className="editable-paragraph changed" key={id}><span>NEW</span><textarea value={value} rows={Math.max(2, Math.ceil(value.length / 105))} onChange={(event) => { session.recordManual(id); setInsertions((current) => ({ ...current, [id]: event.target.value })); }} aria-label={`Inserted paragraph ${index + 1}`} /><button onClick={() => setInsertions((current) => { const next = { ...current }; delete next[id]; return next; })} aria-label={`Remove inserted paragraph ${index + 1}`}><RotateCcw size={13} /></button></div>)}
           </article>}
         </div>
-        <footer className="editor-footer"><span aria-live="polite">{message || <><Check size={13} />Changes are local until you download a copy.</>}</span><button className="btn btn--gold" onClick={download} disabled={!source || state === "saving"}><Download size={14} />Download Word working copy</button></footer>
+        <footer className="editor-footer">
+          {review
+            ? <>
+                <span className="editor-footer__meta">{paragraphs.length + Object.keys(insertions).length} paragraphs · {changedCount} changed</span>
+                <span className="editor-footer__meta">AI-assisted review · {review.model}</span>
+                <span className="editor-footer__state" aria-live="polite">{message || (review.suggestions.length - resolved > 0 ? `${review.suggestions.length - resolved} edit${review.suggestions.length - resolved === 1 ? "" : "s"} awaiting your decision` : "Every suggestion decided")}</span>
+                {view === "document" && <button className="btn btn--ghost btn--sm" onClick={() => setView("redline")}>← Back to redline</button>}
+                <button className="btn btn--ghost btn--sm" onClick={resetEdits} disabled={!changedCount}><RotateCcw size={13} />Reset edits</button>
+                <button className="btn btn--ghost btn--sm" onClick={session.approve} disabled={Boolean(session.approvedAt) || resolved < review.suggestions.length}><Check size={13} />{session.approvedAt ? "Approved" : "Approve review"}</button>
+                <button className="btn btn--navy" onClick={download} disabled={!source || state === "saving"}><Download size={14} />Download Word working copy</button>
+              </>
+            : <><span aria-live="polite">{message || <><Check size={13} />Changes are local until you download a copy.</>}</span><button className="btn btn--gold" onClick={download} disabled={!source || state === "saving"}><Download size={14} />Download Word working copy</button></>}
+        </footer>
       </section>
-      <aside className="review-timer-rail" aria-label="Review time and approval">
+      {!review && <aside className="review-timer-rail" aria-label="Review time and approval">
         <div className="review-timer-rail__label"><span className="eyebrow">Matter time</span><strong>Chargeable review</strong><p>Tracks the time you spend reading, editing and approving this working copy.</p></div>
-        <ReviewSessionTimer elapsedSeconds={session.elapsedSeconds} running={session.running} startedAt={session.startedAt} approvedAt={session.approvedAt} accepted={session.accepted.size} skipped={session.skipped.size} manualEdits={session.manualEdits.size} totalSuggestions={review?.suggestions.length ?? 0} onPause={session.pause} onResume={session.start} onApprove={session.approve} />
-      </aside>
+        <ReviewSessionTimer elapsedSeconds={session.elapsedSeconds} running={session.running} startedAt={session.startedAt} approvedAt={session.approvedAt} accepted={session.accepted.size} skipped={session.skipped.size} manualEdits={session.manualEdits.size} totalSuggestions={0} onPause={session.pause} onResume={session.start} onApprove={session.approve} />
+      </aside>}
     </main>
   </div>;
 }

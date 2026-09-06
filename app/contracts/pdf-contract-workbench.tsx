@@ -3,7 +3,7 @@
 import { Download, FileText, LoaderCircle, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { buildDocxBlob } from "@/lib/docx";
 import { downloadBlob, fileStem } from "@/lib/download";
 import type { ContractEditSuggestion, ContractReviewResult } from "@/lib/contract-review-model";
@@ -67,13 +67,13 @@ export function PdfContractWorkbench({ contractKey, regulationId }: { contractKe
         { kind: "subtitle", text: `Prepared from ${fileName}. Verify layout, tables, signatures and page references against the source PDF.` }, { kind: "rule" },
         ...text.filter(Boolean).map((value) => ({ kind: "para" as const, text: value })),
       ] });
-      const ok = downloadBlob(`${fileStem(fileName)}_Pearson_editable_copy.docx`, blob);
+      const ok = downloadBlob(`${fileStem(fileName)}_LARP_editable_copy.docx`, blob);
       setMessage(ok ? "Editable Word copy downloaded. The R2 PDF was not changed." : "The browser blocked the download."); setState("idle");
     } catch (error) { setState("error"); setMessage(error instanceof Error ? error.message : "The Word copy could not be created."); }
   }
 
   return <div className="shell">
-    <PearsonHeader kicker="Contract review" title={fileName} meta={regulation.shortName} position={review ? `${review.suggestions.length} suggestions` : "Preparing review"} actions={<><Link href={`/contracts?regulation=${regulationId}`} className="btn btn--outline-light">← Contract library</Link><button className="btn btn--gold" onClick={download} disabled={!review || state === "saving"}><Download size={14} />Download working copy</button></>} />
+    <LarpHeader kicker="Contract review" title={fileName} meta={regulation.shortName} position={review ? `${review.suggestions.length} suggestions` : "Preparing review"} actions={<><Link href={`/contracts?regulation=${regulationId}`} className="btn btn--outline-light">← Contract library</Link><button className="btn btn--gold" onClick={download} disabled={!review || state === "saving"}><Download size={14} />Download working copy</button></>} />
     <main className="pdf-workbench">
       <aside className="pdf-source"><div><span className="eyebrow">Original R2 source</span><h1>{fileName}</h1><p><ShieldCheck size={14} />This PDF remains unchanged.</p></div><iframe src={sourceUrl} title={`Original PDF ${fileName}`} /></aside>
       <section className="pdf-conversion">

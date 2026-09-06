@@ -114,7 +114,7 @@ export default function Home() {
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <Link href="/" className="sidebar-brand"><span><GitBranch size={17} /></span><strong>Pearson</strong></Link>
+        <Link href="/" className="sidebar-brand"><span><GitBranch size={17} /></span><strong>L.A.R.P</strong></Link>
         <nav aria-label="Primary navigation">
           <small>WORKSPACE</small>
           <button className="active"><LayoutGrid size={16} /><span>Resilience</span></button>

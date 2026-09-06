@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ── Pearson design tokens (shared by every route) ─────────────── */
+/* ── L.A.R.P design tokens (shared by every route) ─────────────── */
 :root {
   --navy: #0f2033;
   --navy-hover: #1b3550;
@@ -159,7 +159,7 @@ a:hover {
   background: #f2eee6;
 }
 
-/* ── Shared header (components/pearson-header.tsx) ─────────────── */
+/* ── Shared header (components/larp-header.tsx) ─────────────── */
 .ph {
   display: flex;
   align-items: center;
@@ -181,8 +181,8 @@ a:hover {
   color: var(--cream);
 }
 .ph__name {
-  font: 700 17px var(--serif-display);
-  letter-spacing: 0.01em;
+  font: 600 16px var(--sans);
+  letter-spacing: 0.16em;
 }
 .ph__kicker {
   font-size: 9.5px;

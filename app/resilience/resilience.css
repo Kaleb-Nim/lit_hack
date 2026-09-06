@@ -1907,11 +1907,12 @@ button {
 }
 
 /* Final route-level theme overrides. Keep these last so the legacy dashboard
-   consumes the same Pearson tokens as every review and contract route. */
+   consumes the same L.A.R.P tokens as every review and contract route. */
 :root { --background: #e3ded5; --foreground: #16202c; --ink: #16202c; --muted: #6b6459; --line: #d8d2c7; --green: #14654f; --green-2: #8a6a2f; --green-soft: #f1e7d4; --panel: #fff; }
 body { background: var(--background); color: var(--foreground); font-family: var(--sans); }
 .sidebar { background: var(--navy); color: rgba(247,244,238,.74); border-color: #26384c; border-radius: 0; }
 .sidebar-brand { color: var(--cream); text-decoration: none; }
+.sidebar-brand strong { font: 600 15px var(--sans); letter-spacing: .16em; }
 .sidebar-brand > span { border-color: rgba(247,244,238,.28); color: var(--gold); border-radius: 0; }
 .sidebar nav button,.sidebar nav a { border-radius: 0; color: rgba(247,244,238,.7); }
 .sidebar nav button:hover,.sidebar nav a:hover { background: rgba(247,244,238,.08); color: var(--cream); }
@@ -1940,7 +1941,7 @@ body { background: var(--background); color: var(--foreground); font-family: var
   .sidebar nav a { height: 43px; display: flex; justify-content: center; }
 }
 
-/* Top-down map: shared Pearson navy, gold and paper system */
+/* Top-down map: shared L.A.R.P navy, gold and paper system */
 .graph-panel .graph-header {
   min-height: 74px;
   padding: 16px 20px;

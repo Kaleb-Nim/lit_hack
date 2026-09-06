@@ -1,4 +1,4 @@
-# Pearson — Regulatory Workspace
+# L.A.R.P — Localised Amendment Resilience Platform
 
 Trace sourced Singapore regulatory changes through contracts stored in Cloudflare R2. Lawyers can
 edit a browser-only Word working copy and download it without changing the source object.
@@ -65,7 +65,7 @@ The checked-in starter records contain sourced PDPA and Workplace Fairness Act t
 
 ## Contract working copies
 
-`GET /api/contracts` lists source objects and marks modern `.docx` files as editable. `GET /api/contracts/[...key]` streams the original object. There is intentionally no contract write endpoint. The browser opens `word/document.xml` from the downloaded package, applies text edits to a new in-memory package, and downloads `<name>_Pearson_working_copy.docx`. PDFs and legacy `.doc` files remain read-only source documents.
+`GET /api/contracts` lists source objects and marks modern `.docx` files as editable. `GET /api/contracts/[...key]` streams the original object. There is intentionally no contract write endpoint. The browser opens `word/document.xml` from the downloaded package, applies text edits to a new in-memory package, and downloads `<name>_LARP_working_copy.docx`. PDFs and legacy `.doc` files remain read-only source documents.
 
 The same sync caches the PDPA texts effective 2 January 2021 and 5 December 2025 under `Regulations/sources/PDPA2012/`. The regulation workspace displays a verified baseline comparison immediately. With `OPENAI_API_KEY` set server-side, `POST /api/regulations/PDPA2012/comparison` uses the OpenAI Responses API to create a structured summary from those cached texts and stores the result under `Regulations/comparisons/PDPA2012/`. If the source snapshots are not cached yet, the AI is limited to the verified amendment records and the interface says so explicitly.
 

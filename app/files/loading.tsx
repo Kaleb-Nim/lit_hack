@@ -1,10 +1,10 @@
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { REGULATION } from "@/lib/pdpa/data";
 
 export default function Loading() {
   return (
     <div className="shell">
-      <PearsonHeader kicker="Regulatory impact" title={REGULATION.client} meta={REGULATION.matter} />
+      <LarpHeader kicker="Regulatory impact" title={REGULATION.client} meta={REGULATION.matter} />
       <main className="shell__main">
         <div className="status">
           <section className="card status__card" aria-busy="true" aria-live="polite">

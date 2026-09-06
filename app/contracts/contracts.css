@@ -29,3 +29,77 @@
 @media(max-width:900px){.contract-review-assessment{align-items:flex-start;flex-direction:column;gap:6px}.contract-clause-review{overflow-x:auto}.contract-review-panel{flex-basis:280px}.document-editor--review .document-editor__scroll{overflow:auto}}
 
 .review-limitations{margin:12px 0;background:var(--paper);border:1px solid var(--rule)}.review-limitations summary{list-style:none;display:grid;grid-template-columns:20px minmax(0,1fr) 16px;align-items:center;gap:7px;padding:10px;cursor:pointer;color:var(--navy)}.review-limitations summary::-webkit-details-marker{display:none}.review-limitations summary>svg:first-child{color:var(--gold-ink)}.review-limitations summary>svg:last-child{color:var(--muted);transition:transform .16s ease}.review-limitations[open] summary>svg:last-child{transform:rotate(180deg)}.review-limitations summary>span{display:grid;gap:2px}.review-limitations summary strong{font:700 11px var(--sans)}.review-limitations summary small{font:10px var(--sans);color:var(--muted)}.review-limitations__body{max-height:280px;overflow:auto;padding:0 10px 10px;border-top:1px solid var(--rule-row)}.review-limitations__body p{margin:9px 0 0;font:10.5px/1.5 var(--sans);color:var(--muted-strong);overflow-wrap:anywhere}.review-timer-rail>.review-limitations{margin-top:0;margin-bottom:14px}
+
+/* Redline review chrome: chargeable timer as a top strip, full-document view. */
+.editor-page--review{grid-template-columns:minmax(0,1fr)}
+.review-session-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 16px;background:var(--navy);color:var(--cream);border-bottom:3px solid var(--gold);flex:none}
+.review-session-bar.approved{border-bottom-color:#71b795}
+.review-session-bar__label{display:flex;align-items:center;gap:6px;font:700 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.review-session-bar__time{font:600 24px/1 var(--font-geist-mono),ui-monospace,monospace;color:var(--gold);font-variant-numeric:tabular-nums}
+.review-session-bar>i{font:700 9.5px var(--sans);font-style:normal;text-transform:uppercase;letter-spacing:.1em;color:#aeb9c5;white-space:nowrap}
+.review-session-bar>i.running{color:#77cea2}
+.review-session-bar>i.running:before{content:"";display:inline-block;width:6px;height:6px;margin-right:5px;border-radius:50%;background:#77cea2;box-shadow:0 0 0 4px rgba(119,206,162,.14)}
+.review-session-bar__stats{display:flex;gap:7px}
+.review-session-bar__stats span{display:flex;align-items:baseline;gap:5px;background:rgba(255,255,255,.07);padding:5px 9px;font:10px var(--sans);color:#bac4ce;white-space:nowrap}
+.review-session-bar__stats b{font-size:14px;color:var(--cream)}
+.review-session-bar__progress{font:10.5px var(--sans);color:#aeb9c5;white-space:nowrap}
+.review-session-bar__approved{display:flex;align-items:center;gap:6px;font:10.5px var(--sans);color:#8bd0aa;white-space:nowrap}
+.review-session-bar__actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.review-session-bar__actions button{display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.24);background:transparent;color:var(--cream);padding:7px 11px;font:700 11px var(--sans);cursor:pointer;white-space:nowrap}
+.review-session-bar__actions button:hover:not(:disabled){background:rgba(255,255,255,.1)}
+.review-session-bar__actions button.approve{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.review-session-bar__actions button.approve:hover:not(:disabled){background:var(--gold-hover)}
+.review-session-bar__actions button:disabled{cursor:not-allowed;opacity:.48}
+
+.open-final{display:flex;align-items:center;gap:12px;text-align:left;background:var(--navy);color:var(--cream);border:0;padding:13px 15px;cursor:pointer;margin-top:4px}
+.open-final:hover{background:var(--navy-hover)}
+.open-final>span{display:grid;gap:3px;min-width:0}
+.open-final strong{font:700 15px/1.2 var(--serif-display)}
+.open-final small{font:11px/1.35 var(--sans);color:rgba(247,244,238,.68)}
+.open-final>i{margin-left:auto;font-style:normal;font-size:17px;color:var(--gold);flex:none}
+
+.contract-final{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--canvas)}
+.contract-final__bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 18px;background:var(--cream);border-bottom:1px solid var(--rule);flex:none}
+.contract-final__title{font:700 14px var(--serif-display)}
+.contract-final__meta{font-size:11.5px;color:var(--muted)}
+.contract-final__note{margin-left:auto;font-size:11.5px;color:var(--muted-strong)}
+.contract-final__scroll{flex:1;min-height:0;overflow:auto;padding:26px 18px 40px}
+.contract-final__paper{max-width:820px;padding:54px 62px 64px}
+.contract-final__para{margin:0 0 14px;font:14.5px/1.9 var(--serif-body);color:var(--ink);text-wrap:pretty}
+.contract-final__para.amended,.contract-final__para.inserted{padding:9px 13px;margin-left:-16px;margin-right:-16px}
+.contract-final__para.amended{background:#fff8e8;border-left:3px solid var(--gold)}
+.contract-final__para.inserted{background:#edf4f0;border-left:3px solid var(--green)}
+.contract-final__mark{display:block;font:700 8.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:3px}
+.contract-final__para.inserted .contract-final__mark{color:var(--green)}
+.contract-final__footnote{max-width:820px;margin:14px auto 0;font:11.5px var(--sans);color:var(--muted);text-align:center}
+
+@media(max-width:1100px){.editor-page--review{grid-template-columns:1fr}.editor-page--review>.editor-context{border-right:0;border-bottom:1px solid var(--rule)}}
+@media(max-width:860px){.review-session-bar__stats,.review-session-bar__progress{display:none}.review-session-bar__actions{margin-left:auto}.contract-final__paper{padding:32px 24px 40px}}
+
+/* Extracted .docx text can contain long run-together strings with no spaces
+   (lost spacing in the source). Without this they overflow the grid cell and
+   collide with the opposite column. */
+.contract-clause-review .clause__text,
+.contract-final__para{overflow-wrap:anywhere}
+
+/* Header chrome for the redline: generation state and the chargeable clock,
+   which used to live in a strip under the header and then a right-hand rail. */
+.gen-state{display:flex;align-items:center;gap:7px;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:rgba(247,244,238,.82);white-space:nowrap;flex:none}
+.gen-state>i{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
+.gen-state.generating{color:var(--gold)}
+.gen-state.generating>i{background:var(--gold)}
+.chargeable{display:flex;align-items:center;gap:10px;padding:5px 9px 5px 12px;border:1px solid rgba(247,244,238,.28);background:rgba(247,244,238,.06);white-space:nowrap;flex:none}
+.chargeable>span{display:grid;gap:1px}
+.chargeable small{font:9px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:rgba(247,244,238,.6)}
+.chargeable strong{font:700 17px/1 var(--serif-display);color:var(--gold);font-variant-numeric:tabular-nums}
+.chargeable button{border:1px solid rgba(247,244,238,.4);background:transparent;color:var(--cream);padding:6px 9px;font:600 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.chargeable button:hover:not(:disabled){background:rgba(247,244,238,.12)}
+.chargeable button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Review-mode footer carries what the strip used to. */
+.editor-footer__meta{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.editor-footer__state{margin-left:auto;font-size:11.5px;color:var(--muted-strong)}
+.editor-footer .btn--navy{flex:none}
+
+/* Caveats sit under the side-panel CTA, collapsed. */
+.panel__foot .review-limitations{margin:2px 0 0}

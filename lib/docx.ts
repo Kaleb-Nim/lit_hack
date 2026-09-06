@@ -154,7 +154,7 @@ export async function buildDocxBlob(model: DocModel): Promise<Blob> {
 
   const doc = new Document({
     title: model.title,
-    creator: model.creator ?? "Pearson",
+    creator: model.creator ?? "L.A.R.P",
     description: model.description,
     styles: { default: { document: { run: { font: SERIF, size: PT(11), color: INK } } } },
     sections: [

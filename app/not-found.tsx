@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { PearsonHeader } from "@/components/pearson-header";
+import { LarpHeader } from "@/components/larp-header";
 import { FILES, REGULATION } from "@/lib/pdpa/data";
 
 export default function NotFound() {
   return (
     <div className="shell">
-      <PearsonHeader kicker="Regulatory impact" title={REGULATION.client} meta={REGULATION.matter} />
+      <LarpHeader kicker="Regulatory impact" title={REGULATION.client} meta={REGULATION.matter} />
       <main className="shell__main">
         <div className="status">
           <section className="card status__card" aria-labelledby="nf-title">

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { Change } from "@/lib/review/documents";
 import type { Status } from "@/lib/review/state";
 import { Chip } from "./chip";
@@ -12,15 +13,22 @@ interface Props {
   onAccept: () => void;
   onReject: () => void;
   onNextClause: () => void;
+  /** Optional call to action under the next-clause button, e.g. "open the full document". */
+  footer?: ReactNode;
+  /**
+   * The "why" paragraph under the title. Off on the contract workbench, where
+   * model rationales run long enough to squeeze the wording box shut.
+   */
+  showRationale?: boolean;
 }
 
-export function SidePanel({ change, status, text, onEditText, onAccept, onReject, onNextClause }: Props) {
+export function SidePanel({ change, status, text, onEditText, onAccept, onReject, onNextClause, footer, showRationale = true }: Props) {
   return (
     <aside className="panel" aria-label="Selected clause">
       <div className="panel__head">
         <div className="eyebrow">{change.clause}</div>
         <div className="panel__title">{change.title}</div>
-        <p className="panel__rationale">{change.rationale}</p>
+        {showRationale && <p className="panel__rationale">{change.rationale}</p>}
       </div>
 
       <div className="panel__body">
@@ -52,6 +60,7 @@ export function SidePanel({ change, status, text, onEditText, onAccept, onReject
         <button type="button" className="btn btn--gold btn--next-panel" onClick={onNextClause}>
           Go to next clause →
         </button>
+        {footer}
       </div>
     </aside>
   );

@@ -29,7 +29,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "Pearson — Regulatory Workspace",
+  title: "L.A.R.P — Localised Amendment Resilience Platform",
   description:
     "Trace verified Singapore regulatory changes through affected contracts, review proposed edits, and maintain a regulatory audit trail.",
 };

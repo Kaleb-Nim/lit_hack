@@ -9,7 +9,7 @@ type Params = Promise<{ docId: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { docId } = await params;
   const doc = isDocId(docId) ? getDocument(docId) : null;
-  return { title: doc ? `${doc.fileName} — Clauses · Pearson` : "Document not found · Pearson" };
+  return { title: doc ? `${doc.fileName} — Clauses · L.A.R.P` : "Document not found · L.A.R.P" };
 }
 
 export default async function ReviewPage({ params }: { params: Params }) {

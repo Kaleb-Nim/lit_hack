@@ -1,4 +1,4 @@
-# Pearson review flow — route and ownership contract
+# L.A.R.P review flow — route and ownership contract
 
 Target repo: `/Users/kalebnim/Documents/GitHub/lit_hack` (Next.js 16.2 App Router, React 19,
 Tailwind 4, Bun). **Read `node_modules/next/dist/docs/01-app/` before writing code** — this
@@ -11,7 +11,7 @@ Source material to port (read-only, do NOT copy files wholesale — port into th
 - Summary + explorer (static JS): `/Users/kalebnim/orca/workspaces/GitHub/madtom/pdpa-impact-review/{app.js,data.js,index.html,README.md}`
 - Clause reviewer (Vite/React 18): `/Users/kalebnim/orca/workspaces/GitHub/Build-merge-docx-feature/redline-review/src/**` and its `README.md`
 
-Both share the Pearson design system (navy / gold / cream, Playfair Display + Source Sans 3 +
+Both share the L.A.R.P design system (navy / gold / cream, Playfair Display + Source Sans 3 +
 Lora). The tokens, `.btn*`, `.chip`, `.card`, `.eyebrow`, `.ph*` header, `.steps*`, `.shell*`,
 `.scrim` / `.dialog` classes already exist in `app/globals.css`. Reuse them; add route-specific
 CSS in your own file (see ownership). Fonts are loaded in `app/layout.tsx` via `next/font` and
@@ -58,7 +58,7 @@ review decisions live in `ReviewProvider` (root layout) mirrored to sessionStora
   `resetDoc`, `startRun(ids)`, `nextInQueue(docId)`, `clearQueue`, `resetAll`.
   The review agent (B) owns this file from now on and may extend it, but must keep the
   existing signatures because agent A calls `startRun`, `queue`, `docs`, `hydrated`.
-- `components/pearson-header.tsx` — `<PearsonHeader kicker title meta? position? actions? />`.
+- `components/larp-header.tsx` — `<LarpHeader kicker title meta? position? actions? />`.
   Brand links to `/`.
 - `components/flow-steps.tsx` — `<FlowSteps current hrefs />` four-step breadcrumb. Render it
   directly under the header on every route. `hrefs` gives the link for each earlier step, e.g.
@@ -82,7 +82,7 @@ review decisions live in `ReviewProvider` (root layout) mirrored to sessionStora
   `startRun(ids)` and `router.push('/review/' + ids[0])`. Zero selected → button disabled and
   an inline message, never a crash.
 - `app/error.tsx` (client, "Something went wrong" + Try again + Back to summary),
-  `app/not-found.tsx`, `app/loading.tsx` — Pearson-styled.
+  `app/not-found.tsx`, `app/loading.tsx` — L.A.R.P-styled.
 - `lib/download.ts` — `downloadText(filename, text, mime)` using a Blob + object URL, revoking
   the URL afterwards, with try/catch that returns `false` on failure so callers can show an
   inline error. Agent B imports this too — write it first and keep the signature.
@@ -111,7 +111,7 @@ review decisions live in `ReviewProvider` (root layout) mirrored to sessionStora
   button classes already in globals (do not redefine `.btn`, `.chip`, `.eyebrow`, `.scrim`,
   `.dialog`; keep `.compare`, `.sheet`, `.cell*`, `.clause*`, `.panel*`, `.paper*`, etc.).
 - `app/review/[docId]/page.tsx` — server component: `const { docId } = await params`; if
-  `!isDocId(docId)` or `getDocument()` is null → `notFound()`. Renders `<PearsonHeader>` with
+  `!isDocId(docId)` or `getDocument()` is null → `notFound()`. Renders `<LarpHeader>` with
   kicker "Contract review", `<FlowSteps current="clauses" hrefs={{ summary: "/" }} />`, then a
   client `ReviewWorkspace` (compare pane + side panel + footer + keyboard Y/N/↑/↓ hook).
   Header actions: "← Back to summary" (Link `/`) and "Open full document →"

@@ -54,7 +54,7 @@ export interface ReviewApi extends ReviewStore {
   resetAll(): void;
 }
 
-const STORAGE_KEY = "pearson.review.v1";
+const STORAGE_KEY = "larp.review.v1";
 const EMPTY: ReviewStore = { docs: {}, queue: [] };
 
 function readStorage(): ReviewStore {

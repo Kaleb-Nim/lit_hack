@@ -241,7 +241,7 @@ export function buildSignedModel(doc: ReviewDocument, review: DocReview | undefi
     { kind: "heading", text: "Signature", level: 1 },
     { kind: "signature", party: m.signatories[0], name: m.signedBy, date: m.signedDate },
     { kind: "signature", party: m.signatories[1] },
-    { kind: "para", text: `Signed electronically by ${m.signedBy} on ${m.signedDate} via Pearson contract review.`, italic: true, muted: true },
+    { kind: "para", text: `Signed electronically by ${m.signedBy} on ${m.signedDate} via L.A.R.P contract review.`, italic: true, muted: true },
   );
   return { title: m.title, description: `${m.kind} · ${m.executedLine}`, blocks };
 }
