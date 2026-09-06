@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type MutableRefObject, type 
 import { ComparePane } from "@/components/review/compare-pane";
 import { SidePanel } from "@/components/review/side-panel";
 import { useReviewKeys } from "@/components/review/use-review-keys";
+import { FindSimilarClauses } from "./find-similar-clauses";
 import type { ContractEditSuggestion, ContractParagraph, ContractReviewResult } from "@/lib/contract-review-model";
 import type { ReviewDocument } from "@/lib/review/documents";
 import type { DocReview, Status } from "@/lib/review/provider";
@@ -92,6 +93,9 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(suggestions.map((suggestion) => [suggestion.id, suggestion.proposedText])),
   );
+  /** Roll this clause out across the firm's other matters — see find-similar-clauses.tsx. */
+  const [findSimilar, setFindSimilar] = useState(false);
+  const [queued, setQueued] = useState(0);
 
   const active = suggestions.find((suggestion) => suggestion.id === selected) ?? suggestions[0];
   const statusFor = useCallback(
@@ -169,6 +173,8 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
     else onReject(suggestion);
   };
 
+  const activeChange = doc.changes.find((change) => change.id === active.id) ?? doc.changes[0];
+
   return (
     <div className="contract-review-stack">
       {showAssessment && <div className="contract-review-assessment">
@@ -178,9 +184,31 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
       <div className="review contract-clause-review">
         <ComparePane doc={doc} review={docReview} selected={active.id} onSelect={setSelected} onSetStatus={setStatus} onSetText={setText} />
         <div className="contract-review-panel">
-          <SidePanel change={doc.changes.find((change) => change.id === active.id) ?? doc.changes[0]} status={statusFor(active.id)} text={drafts[active.id] ?? active.proposedText} onEditText={(text) => setText(active.id, text)} onAccept={accept} onReject={reject} onNextClause={next} footer={panelFooter} showRationale={showAssessment} />
+          <SidePanel
+            change={activeChange}
+            status={statusFor(active.id)}
+            text={drafts[active.id] ?? active.proposedText}
+            onEditText={(text) => setText(active.id, text)}
+            onAccept={accept}
+            onReject={reject}
+            onNextClause={next}
+            showRationale={showAssessment}
+            footer={<>
+              <button type="button" className="btn btn--block btn--ghost find-similar" onClick={() => setFindSimilar(true)}>
+                {queued ? `Queued in ${queued} file${queued === 1 ? "" : "s"} · find more…` : "Find all similar clauses…"}
+              </button>
+              {panelFooter}
+            </>}
+          />
         </div>
       </div>
+      {findSimilar && <FindSimilarClauses
+        clause={activeChange.clause}
+        title={activeChange.title}
+        text={drafts[active.id] ?? active.proposedText}
+        onClose={() => setFindSimilar(false)}
+        onQueue={(count) => { setQueued(count); setFindSimilar(false); }}
+      />}
     </div>
   );
 }
