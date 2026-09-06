@@ -24,7 +24,7 @@ export function ClauseRow({ clause, change, status, selected, text, onSelect, on
 
   return (
     <>
-      <div className={cellClass}>
+      <div className={cellClass} data-change-id={change?.id}>
         <div className="clause">
           <span className="clause__bar" style={{ background: rail }} />
           <span className="clause__number">{clause.number}</span>
@@ -49,7 +49,7 @@ export function ClauseRow({ clause, change, status, selected, text, onSelect, on
         </div>
       </div>
 
-      <div className={cellClass}>
+      <div className={cellClass} data-change-id={change?.id}>
         <div className="clause">
           <span className="clause__bar" style={{ background: rail }} />
           <span className="clause__number">{clause.number}</span>

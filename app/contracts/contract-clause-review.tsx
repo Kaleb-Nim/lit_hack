@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type MutableRefObject, type 
 import { ComparePane } from "@/components/review/compare-pane";
 import { SidePanel } from "@/components/review/side-panel";
 import { useReviewKeys } from "@/components/review/use-review-keys";
-import type { ContractEditSuggestion, ContractReviewResult } from "@/lib/contract-review-model";
+import type { ContractEditSuggestion, ContractParagraph, ContractReviewResult } from "@/lib/contract-review-model";
 import type { ReviewDocument } from "@/lib/review/documents";
 import type { DocReview, Status } from "@/lib/review/provider";
 
@@ -29,7 +29,52 @@ type Props = {
    * component (the header button) can drive the selection it owns.
    */
   nextClauseRef?: MutableRefObject<(() => void) | null>;
+  /**
+   * Every paragraph of the source document, so the redline reads as the whole
+   * contract rather than only the clauses carrying a suggestion. Falls back to
+   * the paragraphs the model was given.
+   */
+  sourceParagraphs?: ContractParagraph[];
 };
+
+
+/**
+ * The redline shows the whole contract, not just the clauses being changed.
+ * Every source paragraph becomes a row; the ones a suggestion targets carry
+ * its `changeId` (their wording comes from the change, so before/after stay
+ * empty), and everything else renders as plain unedited body text on both
+ * sides. Insertions have no source paragraph, so they follow at the end.
+ *
+ * The gutter is sized for "1.1", and model clause labels run to a full
+ * sentence, so it keeps a short ordinal and the label heads the side panel.
+ */
+function buildClauses(paragraphs: ContractParagraph[], suggestions: ContractEditSuggestion[]) {
+  const bySource = new Map<number, ContractEditSuggestion>();
+  for (const suggestion of suggestions) {
+    if (suggestion.action !== "insert" && suggestion.paragraphIndex >= 0) bySource.set(suggestion.paragraphIndex, suggestion);
+  }
+
+  const rows = paragraphs.map((paragraph, order) => {
+    const suggestion = bySource.get(paragraph.index);
+    return {
+      number: String(order + 1),
+      before: suggestion ? "" : paragraph.text,
+      after: "",
+      changeId: suggestion?.id,
+    };
+  });
+
+  // ComparePane keys rows by `number`, so appended insertions need distinct ones.
+  const placed = new Set(bySource.values());
+  let inserted = 0;
+  suggestions.forEach((suggestion) => {
+    if (placed.has(suggestion)) return;
+    inserted += 1;
+    rows.push({ number: `New ${inserted}`, before: "", after: "", changeId: suggestion.id });
+  });
+
+  return rows;
+}
 
 function nextId(suggestions: ContractEditSuggestion[], selected: string, delta = 1) {
   const index = Math.max(0, suggestions.findIndex((suggestion) => suggestion.id === selected));
@@ -41,7 +86,7 @@ function nextId(suggestions: ContractEditSuggestion[], selected: string, delta =
  * model as `/review/[docId]`. Only accepted wording is handed back to the
  * working-copy builder; the R2 source remains read-only.
  */
-function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onReject, onUpdateAccepted, showAssessment = true, panelFooter, nextClauseRef }: Props) {
+function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onReject, onUpdateAccepted, showAssessment = true, panelFooter, nextClauseRef, sourceParagraphs }: Props) {
   const suggestions = review.suggestions;
   const [selected, setSelected] = useState(() => suggestions[0]?.id ?? "");
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -69,15 +114,7 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
     reviewer: `AI-assisted review · ${review.model}`,
     sections: [{
       heading: review.documentType || "Proposed amendments",
-      clauses: suggestions.map((suggestion, index) => ({
-        // The gutter is sized for "1.1". Model clause labels run to a full
-        // sentence, so they go in the side-panel eyebrow and the gutter keeps
-        // a short ordinal.
-        number: String(index + 1),
-        before: "",
-        after: "",
-        changeId: suggestion.id,
-      })),
+      clauses: buildClauses(sourceParagraphs ?? review.paragraphs, suggestions),
     }],
     changes: suggestions.map((suggestion) => ({
       id: suggestion.id,
@@ -88,7 +125,7 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
       replaced: suggestion.originalText || "No equivalent clause was found in the source document.",
       obligationId: "o1",
     })),
-  }), [drafts, review, suggestions]);
+  }), [drafts, review, sourceParagraphs, suggestions]);
 
   const docReview = useMemo<DocReview>(() => ({
     statuses: Object.fromEntries(suggestions.map((suggestion) => [suggestion.id, statusFor(suggestion.id)])),
@@ -104,6 +141,11 @@ function ContractClauseReviewBody({ review, accepted, skipped, onAccept, onRejec
   const previous = useCallback(() => setSelected((id) => nextId(suggestions, id, -1)), [suggestions]);
 
   useReviewKeys({ active: Boolean(active), onAccept: accept, onReject: reject, onNext: next, onPrev: previous });
+
+  useEffect(() => {
+    const el = document.querySelector(`[data-change-id="${selected}"]`);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [selected]);
 
   useEffect(() => {
     if (!nextClauseRef) return;
