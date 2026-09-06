@@ -7,9 +7,17 @@ import type { ContractReviewResult } from "@/lib/contract-review-model";
 // dropped under Contracts/ would surface as a phantom contract.
 const cachePrefix = "Regulations/review-cache/";
 
+// The fingerprint only tracks the source document, so it cannot notice a change
+// to the prompt, the schema or the post-processing. Bump this whenever the shape
+// or meaning of a stored review changes, otherwise old entries are served as if
+// they were produced by the new pipeline. Entries written before versioning are
+// treated as v1.
+const CACHE_VERSION = "v1";
+
 export type CachedContractReview = {
   contractKey: string;
   regulationId: string;
+  version: string;
   /** R2 ETag of the source document. A replaced document invalidates the entry. */
   fingerprint: string;
   reviewedParagraphs: number;
@@ -27,15 +35,16 @@ export async function readCachedReview(contractKey: string, regulationId: string
     if (!response.ok) return null;
     const value = await response.json() as Partial<CachedContractReview>;
     if (!value.review || value.fingerprint !== fingerprint) return null;
+    if ((value.version ?? "v1") !== CACHE_VERSION) return null;
     return value as CachedContractReview;
   } catch {
     return null;
   }
 }
 
-export async function writeCachedReview(entry: Omit<CachedContractReview, "cachedAt">) {
+export async function writeCachedReview(entry: Omit<CachedContractReview, "cachedAt" | "version">) {
   try {
-    await putR2Json(cacheKeyFor(entry.contractKey, entry.regulationId), { ...entry, cachedAt: new Date().toISOString() });
+    await putR2Json(cacheKeyFor(entry.contractKey, entry.regulationId), { ...entry, version: CACHE_VERSION, cachedAt: new Date().toISOString() });
     return true;
   } catch {
     // A cache write must never fail the review the user just waited for.
