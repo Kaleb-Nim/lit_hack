@@ -39,7 +39,7 @@ const schema = {
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey.startsWith("replace_")) return Response.json({ error: "Add OPENAI_API_KEY to .env.local before running regulatory research." }, { status: 503 });
+  if (!apiKey || apiKey.startsWith("replace_")) return Response.json({ error: "Regulatory research is unavailable: OPENAI_API_KEY is not configured on the server." }, { status: 503 });
   const form = await request.formData();
   const prompt = String(form.get("prompt") ?? "").trim();
   const upload = form.get("file");

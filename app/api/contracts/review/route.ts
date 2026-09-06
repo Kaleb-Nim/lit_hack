@@ -50,7 +50,7 @@ const schema = {
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey.startsWith("replace_")) return Response.json({ error: "Add OPENAI_API_KEY to .env.local to review contracts." }, { status: 503 });
+  if (!apiKey || apiKey.startsWith("replace_")) return Response.json({ error: "AI review is unavailable: OPENAI_API_KEY is not configured on the server." }, { status: 503 });
   const body = await request.json() as { key?: string; regulationId?: string };
   const prefix = process.env.R2_CONTRACT_PREFIX ?? "Contracts/";
   const key = String(body.key ?? "");
