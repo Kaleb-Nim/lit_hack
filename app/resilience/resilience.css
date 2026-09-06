@@ -1674,12 +1674,12 @@ button {
 .sidebar nav { display: flex; flex-direction: column; gap: 3px; }
 .sidebar nav > small { font-size: 8px; letter-spacing: .1em; color: #74716b; padding: 19px 9px 7px; }
 .sidebar nav > small:first-child { padding-top: 2px; }
-.sidebar nav button { height: 34px; border: 0; border-radius: 5px; background: transparent; color: #aaa8a2; padding: 0 9px; display: flex; align-items: center; gap: 10px; font-size: 11px; cursor: pointer; text-align: left; }
-.sidebar nav button:hover { background: #23221f; color: white; }
-.sidebar nav button.active { background: #302f2b; color: white; }
-.sidebar nav button span { flex: 1; }
-.sidebar nav button em { font-style: normal; font-size: 8px; color: #8f8c85; }
-.sidebar nav button .alert-count { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: #e5dfd0; color: #292821; font-weight: 800; }
+.sidebar nav button, .sidebar nav a { height: 34px; border: 0; border-radius: 5px; background: transparent; color: #aaa8a2; padding: 0 9px; display: flex; align-items: center; gap: 10px; font-size: 11px; cursor: pointer; text-align: left; text-decoration: none; }
+.sidebar nav button:hover, .sidebar nav a:hover { background: #23221f; color: white; }
+.sidebar nav button.active, .sidebar nav a.active { background: #302f2b; color: white; }
+.sidebar nav button span, .sidebar nav a span { flex: 1; }
+.sidebar nav button em, .sidebar nav a em { font-style: normal; font-size: 8px; color: #8f8c85; }
+.sidebar nav button .alert-count, .sidebar nav a .alert-count { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: #e5dfd0; color: #292821; font-weight: 800; }
 .sidebar-footer { margin-top: auto; border-top: 1px solid #302f2b; padding-top: 12px; display: grid; gap: 3px; }
 .workspace-card, .sidebar-user { display: flex; align-items: center; gap: 8px; padding: 8px 7px; border-radius: 5px; }
 .workspace-card { background: #1b1b18; }
@@ -1736,8 +1736,8 @@ button {
   .app-shell { grid-template-columns: 70px minmax(0, 1fr); }
   .sidebar { padding-left: 10px; padding-right: 10px; }
   .sidebar-brand { padding-left: 10px; }
-  .sidebar-brand strong, .sidebar nav button span, .sidebar nav button em, .sidebar nav > small, .workspace-card div, .sidebar-user div, .workspace-card svg, .sidebar-user svg { display: none; }
-  .sidebar nav button { justify-content: center; padding: 0; }
+  .sidebar-brand strong, .sidebar nav button span, .sidebar nav button em, .sidebar nav a span, .sidebar nav a em, .sidebar nav > small, .workspace-card div, .sidebar-user div, .workspace-card svg, .sidebar-user svg { display: none; }
+  .sidebar nav button, .sidebar nav a { justify-content: center; padding: 0; }
   .workspace-card, .sidebar-user { justify-content: center; }
   .workspace-card > span, .sidebar-user > span { flex: 0 0 auto; }
   .content { padding-left: 18px; padding-right: 18px; }
@@ -1748,8 +1748,8 @@ button {
   .sidebar { position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 58px; padding: 7px 10px; display: block; border-right: 0; border-top: 1px solid #2c2b28; }
   .sidebar-brand, .sidebar-footer, .sidebar nav > small, .sidebar nav button:nth-of-type(n+6) { display: none; }
   .sidebar nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
-  .sidebar nav button { height: 43px; display: flex !important; justify-content: center; }
-  .sidebar nav button span, .sidebar nav button em { display: none; }
+  .sidebar nav button, .sidebar nav a { height: 43px; display: flex !important; justify-content: center; }
+  .sidebar nav button span, .sidebar nav button em, .sidebar nav a span, .sidebar nav a em { display: none; }
   .main-stage { padding-bottom: 58px; }
   .topbar { padding: 0 13px; }
   .breadcrumbs span, .search-button, .ask-button { display: none; }
