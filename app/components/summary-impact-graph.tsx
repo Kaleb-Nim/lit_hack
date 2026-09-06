@@ -1,18 +1,8 @@
 "use client";
 
-import { FileText, Scale, ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
-import {
-  Background,
-  BackgroundVariant,
-  Controls,
-  MarkerType,
-  MiniMap,
-  Position,
-  ReactFlow,
-  type Edge,
-  type Node,
-} from "@xyflow/react";
+import { TopDownContractGraph } from "@/app/resilience/top-down-contract-graph";
 import type { ContractReviewResult } from "@/lib/contract-review-model";
 import { regulationById, type RegulationId } from "@/lib/regulatory-workspace";
 
@@ -200,130 +190,6 @@ export function SummaryImpactGraph({
     selected && (selected.editable || selected.convertible),
   );
 
-  const { nodes, edges } = (() => {
-    if (!selected) return { nodes: [], edges: [] };
-    const areas = POLICY_AREAS[regulationId];
-    const columnWidth = 310;
-    const rootX = Math.max(0, ((areas.length - 1) * columnWidth) / 2);
-    const graphNodes: Node[] = [
-      {
-        id: "regulation",
-        type: "input",
-        position: { x: rootX, y: 0 },
-        sourcePosition: Position.Bottom,
-        className: "flow-node flow-node--regulation",
-        data: {
-          label: (
-            <div className="flow-node__label">
-              <Scale size={16} />
-              <span>
-                <small>Official regulation</small>
-                <strong>{regulation.title}</strong>
-              </span>
-            </div>
-          ),
-        },
-        style: { width: 280 },
-      },
-    ];
-    const graphEdges: Edge[] = [];
-    const documentsByPrimaryArea = new Map(
-      areas.map((area) => [
-        area.id,
-        [] as Array<{ contract: ImpactGraphContract; index: number }>,
-      ]),
-    );
-
-    areas.forEach((area, index) => {
-      const areaHit = hits.some((hit) => hit.id === area.id);
-      graphNodes.push({
-        id: `policy-${area.id}`,
-        position: { x: index * columnWidth, y: 150 },
-        sourcePosition: Position.Bottom,
-        targetPosition: Position.Top,
-        className: `flow-node flow-node--policy${areaHit ? " is-selected-path" : ""}`,
-        data: {
-          label: (
-            <div className="flow-node__label">
-              <ShieldCheck size={15} />
-              <span>
-                <strong>{area.label}</strong>
-                <small>{area.description}</small>
-              </span>
-            </div>
-          ),
-        },
-        style: { width: 250 },
-      });
-      graphEdges.push({
-        id: `regulation-${area.id}`,
-        source: "regulation",
-        target: `policy-${area.id}`,
-        markerEnd: { type: MarkerType.ArrowClosed },
-        className: areaHit ? "flow-edge is-selected-path" : "flow-edge",
-      });
-    });
-
-    contracts.forEach((contract, index) => {
-      const contractHits = policyHits(
-        contract,
-        regulationId,
-        reviews[contract.key] ?? null,
-      );
-      const primary = contractHits[0] ?? areas[0];
-      documentsByPrimaryArea.get(primary.id)?.push({ contract, index });
-    });
-
-    areas.forEach((area, areaIndex) => {
-      const column = documentsByPrimaryArea.get(area.id) ?? [];
-      column.forEach(({ contract, index }, row) => {
-        const id = `document-${index}`;
-        const isSelected = contract.key === selected.key;
-        graphNodes.push({
-          id,
-          type: "output",
-          position: { x: areaIndex * columnWidth, y: 335 + row * 104 },
-          targetPosition: Position.Top,
-          className: `flow-node flow-node--document flow-node--${contract.priority.toLowerCase()}${isSelected ? " is-selected" : ""}`,
-          data: {
-            contractKey: contract.key,
-            priority: contract.priority,
-            label: (
-              <div className="flow-node__label">
-                <FileText size={14} />
-                <span>
-                  <strong>{contract.name}</strong>
-                  <small>
-                    {contract.client} · {contract.documentType}
-                  </small>
-                </span>
-                <b>{contract.priority}</b>
-              </div>
-            ),
-          },
-          style: { width: 250 },
-        });
-
-        policyHits(
-          contract,
-          regulationId,
-          reviews[contract.key] ?? null,
-        ).forEach((hit) => {
-          graphEdges.push({
-            id: `${hit.id}-${id}`,
-            source: `policy-${hit.id}`,
-            target: id,
-            markerEnd: { type: MarkerType.ArrowClosed },
-            className: isSelected ? "flow-edge is-selected-path" : "flow-edge",
-            animated: isSelected,
-          });
-        });
-      });
-    });
-
-    return { nodes: graphNodes, edges: graphEdges };
-  })();
-
   if (!selected)
     return (
       <div className="document-filter-message">
@@ -333,36 +199,13 @@ export function SummaryImpactGraph({
 
   return (
     <div className="impact-graph">
-      <div
-        className="impact-graph__canvas"
-        aria-label={`Dependency path for ${selected.name}`}
-      >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          defaultViewport={{ x: -450, y: 50, zoom: 0.8 }}
-          // fitView
-          // fitViewOptions={{ padding: 0.025, minZoom: 0.34, maxZoom: 2 }}
-          minZoom={0.2}
-          maxZoom={2}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable
-          onNodeClick={(_, node) => {
-            const key = node.data.contractKey;
-            if (typeof key === "string") onSelect(key);
-          }}
-        >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={16}
-            size={1}
-            color="#c9c4b9"
-          />
-          <Controls showInteractive={false} />
-          {/* <MiniMap pannable zoomable nodeColor={(node) => node.id === "regulation" ? "#16202c" : node.className?.toString().includes("--high") ? "#9b2226" : node.className?.toString().includes("--medium") ? "#b0873f" : "#d8d3c9"} /> */}
-        </ReactFlow>
-      </div>
+      <TopDownContractGraph
+        contracts={contracts}
+        initialRegulationId={regulationId}
+        selectedKey={selected.key}
+        onDocumentSelect={onSelect}
+        showRegulationSwitcher={false}
+      />
 
       <aside className="impact-explanation">
         <div className="impact-explanation__head">

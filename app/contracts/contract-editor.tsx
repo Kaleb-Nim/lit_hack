@@ -140,7 +140,6 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
               <span><small>Time taken</small><strong>{formatClock(session.elapsedSeconds)}</strong></span>
               <button onClick={session.running ? session.pause : session.start} disabled={!session.startedAt}>{session.running ? "Pause" : "Resume"}</button>
             </span>
-            <button className="btn btn--outline-light" onClick={runReview} disabled={reviewing || state === "loading"}>{reviewing ? <LoaderCircle className="spin" size={14} /> : null}Amendments</button>
             <button className="btn btn--gold" onClick={() => { setView("redline"); nextClause.current?.(); }}>Go to next clause →</button>
           </>
         : <>

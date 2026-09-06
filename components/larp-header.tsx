@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 interface Props {
@@ -21,9 +22,16 @@ interface Props {
 export function LarpHeader({ kicker, title, meta, position, actions }: Props) {
   return (
     <header className="ph">
-      <Link href="/" className="ph__brand" aria-label="L.A.R.P — back to the regulatory workspace">
-        <span className="ph__name">L.A.R.P</span>
-        <span className="ph__kicker">{kicker}</span>
+      <Link
+        href="/"
+        className="flex gap-2"
+        aria-label="L.A.R.P — back to the regulatory workspace"
+      >
+        <Image src="/icon.png" alt="L.A.R.P logo" width={24} height={24} />
+        <div className="ph__brand">
+          <span className="ph__name">L.A.R.P</span>
+          <span className="ph__kicker">{kicker}</span>
+        </div>
       </Link>
       <span className="ph__divider" />
       <div className="ph__doc">

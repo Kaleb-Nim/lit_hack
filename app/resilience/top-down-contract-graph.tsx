@@ -12,10 +12,12 @@ export type GraphContract = {
   key: string;
   name: string;
   format?: string;
-  size: number;
+  size?: number;
   downloadUrl: string;
   client?: string;
   documentType?: string;
+  priority?: "Critical" | "High" | "Medium" | "Low";
+  prioritySource?: "AI checked" | "Pre-screened";
 };
 
 type ContractFamily = {
@@ -81,11 +83,17 @@ export function TopDownContractGraph({
   traceActive = false,
   onTraceChange,
   initialRegulationId = "PDPA2012",
+  selectedKey,
+  onDocumentSelect,
+  showRegulationSwitcher = true,
 }: {
   contracts: GraphContract[];
   traceActive?: boolean;
   onTraceChange?: (active: boolean) => void;
   initialRegulationId?: RegulationId;
+  selectedKey?: string;
+  onDocumentSelect?: (key: string) => void;
+  showRegulationSwitcher?: boolean;
 }) {
   const [regulationId, setRegulationId] =
     useState<RegulationId>(initialRegulationId);
@@ -112,7 +120,7 @@ export function TopDownContractGraph({
       aria-label="Top-down contract dependency graph"
     >
       <div className="td-graph__toolbar">
-        <div className="td-graph__controls" aria-label="Choose regulation">
+        {showRegulationSwitcher && <div className="td-graph__controls" aria-label="Choose regulation">
           {WORKSPACE_REGULATIONS.map((item) => (
             <button
               key={item.id}
@@ -124,7 +132,7 @@ export function TopDownContractGraph({
               {item.title}
             </button>
           ))}
-        </div>
+        </div>}
         <button
           className={`td-graph__trace ${tracing ? "active" : ""}`}
           onClick={() => changeTrace(!tracing)}
@@ -192,14 +200,7 @@ export function TopDownContractGraph({
                     const href = workbench
                       ? `/contracts/${contract.key.split("/").map(encodeURIComponent).join("/")}?regulation=${regulationId}`
                       : contract.downloadUrl;
-                    return (
-                      <Link
-                        className="td-document"
-                        href={href}
-                        target={workbench ? undefined : "_blank"}
-                        key={contract.key}
-                        title={contract.name}
-                      >
+                    const contents = <>
                         <FileText size={14} />
                         <span>
                           <strong>{contract.name}</strong>
@@ -207,9 +208,30 @@ export function TopDownContractGraph({
                             {contract.documentType ??
                               (contract.format ?? "file").toUpperCase()}{" "}
                             · {contract.client ?? "Unassigned"} ·{" "}
-                            {relevanceLabel(regulationId, group.id)}
+                            {contract.prioritySource ?? relevanceLabel(regulationId, group.id)}
                           </small>
                         </span>
+                        {contract.priority && <b className={`is-${contract.priority.toLowerCase()}`}>{contract.priority}</b>}
+                      </>;
+                    return onDocumentSelect ? (
+                      <button
+                        type="button"
+                        className={`td-document${selectedKey === contract.key ? " is-selected" : ""}`}
+                        onClick={() => onDocumentSelect(contract.key)}
+                        key={contract.key}
+                        title={`Explain ${contract.name}`}
+                      >
+                        {contents}
+                      </button>
+                    ) : (
+                      <Link
+                        className="td-document"
+                        href={href}
+                        target={workbench ? undefined : "_blank"}
+                        key={contract.key}
+                        title={contract.name}
+                      >
+                        {contents}
                       </Link>
                     );
                   })}

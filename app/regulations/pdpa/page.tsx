@@ -139,7 +139,7 @@ export default function SummaryPage() {
             <RegulatorySourceBriefing journey={REGULATORY_JOURNEYS.PDPA2012} />
 
             {/* Primary call to action */}
-            <div className="cta">
+            {/* <div className="cta">
               <Link href="/contracts?regulation=PDPA2012" className="cta__main">
                 <span className="cta__text">
                   <span className="cta__title">Review the source contracts</span>
@@ -155,7 +155,7 @@ export default function SummaryPage() {
               <Link href="/" className="cta__secondary">
                 Switch regulation or return to the shared legal workspace →
               </Link>
-            </div>
+            </div> */}
 
             {/* Legend */}
             <div className="legend">
