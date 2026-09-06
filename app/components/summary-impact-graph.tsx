@@ -189,36 +189,82 @@ export function SummaryImpactGraph({
 
   if (!selected) return <div className="document-filter-message">No documents match the current filters.</div>;
 
-  return <div className="impact-graph">
-    <div className="impact-graph__canvas" aria-label={`Dependency path for ${selected.name}`}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        fitView
-        fitViewOptions={{ padding: 0.025, minZoom: 0.34, maxZoom: 1.1 }}
-        minZoom={0.2}
-        maxZoom={2}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable
-        onNodeClick={(_, node) => {
-          const key = node.data.contractKey;
-          if (typeof key === "string") onSelect(key);
-        }}
+  return (
+    <div className="impact-graph">
+      <div
+        className="impact-graph__canvas"
+        aria-label={`Dependency path for ${selected.name}`}
       >
-        <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#c9c4b9" />
-        <Controls showInteractive={false} />
-        <MiniMap pannable zoomable nodeColor={(node) => node.id === "regulation" ? "#16202c" : node.className?.toString().includes("--high") ? "#9b2226" : node.className?.toString().includes("--medium") ? "#b0873f" : "#d8d3c9"} />
-      </ReactFlow>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          defaultViewport={{ x: -450, y: 50, zoom: 0.8 }}
+          // fitView
+          // fitViewOptions={{ padding: 0.025, minZoom: 0.34, maxZoom: 2 }}
+          minZoom={0.2}
+          maxZoom={2}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable
+          onNodeClick={(_, node) => {
+            const key = node.data.contractKey;
+            if (typeof key === "string") onSelect(key);
+          }}
+        >
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={16}
+            size={1}
+            color="#c9c4b9"
+          />
+          <Controls showInteractive={false} />
+          {/* <MiniMap pannable zoomable nodeColor={(node) => node.id === "regulation" ? "#16202c" : node.className?.toString().includes("--high") ? "#9b2226" : node.className?.toString().includes("--medium") ? "#b0873f" : "#d8d3c9"} /> */}
+        </ReactFlow>
+      </div>
+
+      <aside className="impact-explanation">
+        <div className="impact-explanation__head">
+          <span
+            className={`document-filter-priority document-filter-priority--${selected.priority.toLowerCase()}`}
+          >
+            <strong>{selected.priority}</strong>
+            <small>
+              {review && <Sparkles size={10} />}
+              {selected.prioritySource}
+            </small>
+          </span>
+          <div>
+            <span className="eyebrow">Why this priority</span>
+            <h3>{selected.name}</h3>
+          </div>
+        </div>
+        <p className="impact-explanation__path">
+          {regulation.shortName} → {hits.map((hit) => hit.label).join(" + ")} →{" "}
+          {selected.documentType}
+        </p>
+        <ul>
+          {reasons.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+        {review?.suggestions.length ? (
+          <div className="impact-explanation__evidence">
+            <span>Clause evidence</span>
+            {review.suggestions.slice(0, 3).map((suggestion) => (
+              <p key={suggestion.id}>
+                <strong>{suggestion.clause}</strong>
+                {suggestion.reason}
+              </p>
+            ))}
+          </div>
+        ) : null}
+        <Link
+          href={contractHref(selected, regulationId)}
+          target={workbench ? undefined : "_blank"}
+        >
+          {workbench ? "Review & edit" : "Open source"}
+        </Link>
+      </aside>
     </div>
-
-    <aside className="impact-explanation">
-      <div className="impact-explanation__head"><span className={`document-filter-priority document-filter-priority--${selected.priority.toLowerCase()}`}><strong>{selected.priority}</strong><small>{review && <Sparkles size={10} />}{selected.prioritySource}</small></span><div><span className="eyebrow">Why this priority</span><h3>{selected.name}</h3></div></div>
-      <p className="impact-explanation__path">{regulation.shortName} → {hits.map((hit) => hit.label).join(" + ")} → {selected.documentType}</p>
-      <ul>{reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
-      {review?.suggestions.length ? <div className="impact-explanation__evidence"><span>Clause evidence</span>{review.suggestions.slice(0, 3).map((suggestion) => <p key={suggestion.id}><strong>{suggestion.clause}</strong>{suggestion.reason}</p>)}</div> : null}
-      <Link href={contractHref(selected, regulationId)} target={workbench ? undefined : "_blank"}>{workbench ? "Review & edit" : "Open source"}</Link>
-    </aside>
-
-  </div>;
+  );
 }
