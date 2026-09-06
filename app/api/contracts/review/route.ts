@@ -1,12 +1,22 @@
 import JSZip from "jszip";
 import { getR2Object } from "@/lib/r2";
 import { isRegulationId, regulationById } from "@/lib/regulatory-workspace";
+import { readCachedReview, writeCachedReview } from "@/lib/contract-review-server-cache";
 import type { ContractParagraph, ContractReviewResult } from "@/lib/contract-review-model";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const MAX_BYTES = 20 * 1024 * 1024;
+// Demo setting: only the opening section of a contract is sent to the model, so
+// a review returns in seconds rather than ~2 minutes. The full document is still
+// returned for display — the window applies to AI analysis only.
+const REVIEW_PARAGRAPH_LIMIT = Number(process.env.REVIEW_PARAGRAPH_LIMIT ?? 80);
+// A cache hit answers instantly, which reads as "nothing happened" on stage.
+// Hold the response briefly so the UI's progress state is visible.
+const CACHE_HIT_MIN_MS = Number(process.env.REVIEW_CACHE_HIT_MIN_MS ?? 5000);
+const CACHE_HIT_MAX_MS = Number(process.env.REVIEW_CACHE_HIT_MAX_MS ?? 10000);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const allowedDomains = ["sso.agc.gov.sg", "mom.gov.sg", "pdpc.gov.sg", "mddi.gov.sg", "parliament.gov.sg"];
 const allowedHosts = new Set([...allowedDomains, ...allowedDomains.map((domain) => `www.${domain}`)]);
 
@@ -50,6 +60,7 @@ const schema = {
 };
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.startsWith("replace_")) return Response.json({ error: "AI review is unavailable: OPENAI_API_KEY is not configured on the server." }, { status: 503 });
   const body = await request.json() as { key?: string; regulationId?: string };
@@ -65,10 +76,23 @@ export async function POST(request: Request) {
     if (!source.ok) return Response.json({ error: "The source contract could not be loaded from R2." }, { status: source.status });
     const bytes = new Uint8Array(await source.arrayBuffer());
     if (bytes.byteLength > MAX_BYTES) return Response.json({ error: "This contract is larger than the 20 MB review limit." }, { status: 413 });
+
+    const fingerprint = source.headers.get("etag")?.replaceAll('"', "") || `size-${bytes.byteLength}`;
+    const cached = await readCachedReview(key, body.regulationId, fingerprint);
+    if (cached) {
+      // Target a total response time in the 5-10s window, absorbing the R2 read
+      // already spent rather than adding on top of it.
+      const target = CACHE_HIT_MIN_MS + Math.floor(Math.random() * Math.max(0, CACHE_HIT_MAX_MS - CACHE_HIT_MIN_MS));
+      await sleep(Math.max(0, target - (Date.now() - startedAt)));
+      return Response.json({ review: cached.review, cached: true, cachedAt: cached.cachedAt, reviewedParagraphs: cached.reviewedParagraphs, totalParagraphs: cached.totalParagraphs });
+    }
+
     const regulation = regulationById(body.regulationId);
     const knownParagraphs = extension === "docx" ? await extractDocxParagraphs(bytes) : [];
-    const annotatedText = knownParagraphs.map((paragraph) => `[PARAGRAPH ${paragraph.index}] ${paragraph.text}`).join("\n").slice(0, 180000);
-    const content: Array<Record<string, string>> = [{ type: "input_text", text: `Review this contract against ${regulation.title}. The official source is ${regulation.sourceUrl}. ${regulation.summary}\n\nIdentify only material clauses affected by the verified legal position. Suggest complete replacement wording for amendments. For a missing clause, use action insert. For uncertainty, use action review. Do not invent obligations or commencement dates. Search official Singapore sources and distinguish current obligations from future readiness. ${extension === "docx" ? `Use the exact paragraph indexes below and preserve the original meaning where no change is needed:\n${annotatedText}` : "Extract the PDF into clean reading-order paragraphs with stable zero-based indexes, then map every suggestion to the closest paragraph."}` }];
+    // Chunk: the model sees the opening window, the client still gets every paragraph.
+    const reviewParagraphs = knownParagraphs.slice(0, REVIEW_PARAGRAPH_LIMIT);
+    const annotatedText = reviewParagraphs.map((paragraph) => `[PARAGRAPH ${paragraph.index}] ${paragraph.text}`).join("\n").slice(0, 180000);
+    const content: Array<Record<string, string>> = [{ type: "input_text", text: `Review this contract against ${regulation.title}. The official source is ${regulation.sourceUrl}. ${regulation.summary}\n\nIdentify only material clauses affected by the verified legal position. Suggest complete replacement wording for amendments. For a missing clause, use action insert. For uncertainty, use action review. Do not invent obligations or commencement dates. Search official Singapore sources and distinguish current obligations from future readiness. ${extension === "docx" ? `You are reviewing the opening section of the contract (paragraphs 0-${Math.max(0, reviewParagraphs.length - 1)} of ${knownParagraphs.length}). Use the exact paragraph indexes below and preserve the original meaning where no change is needed:\n${annotatedText}` : `Extract only the first ${REVIEW_PARAGRAPH_LIMIT} paragraphs of the PDF in clean reading order with stable zero-based indexes, then map every suggestion to the closest of those paragraphs.`}` }];
     if (extension === "pdf") content.push({ type: "input_file", filename: key.split("/").at(-1) ?? "contract.pdf", file_data: `data:application/pdf;base64,${Buffer.from(bytes).toString("base64")}` });
 
     const aiResponse = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" }, body: JSON.stringify({
@@ -87,10 +111,13 @@ export async function POST(request: Request) {
     const paragraphs = extension === "docx" ? knownParagraphs : parsed.paragraphs.map((paragraph, index) => ({ index, text: String(paragraph.text ?? "") })).filter((paragraph) => paragraph.text.trim()).slice(0, 1200);
     const validIndexes = new Set(paragraphs.map((paragraph) => paragraph.index));
     const suggestions = parsed.suggestions.slice(0, 20).map((item, index) => ({ ...item, id: item.id || `suggestion-${index}`, paragraphIndex: Number(item.paragraphIndex), sourceUrl: isAllowedSource(item.sourceUrl) ? item.sourceUrl : regulation.sourceUrl })).filter((item) => item.action !== "amend" || validIndexes.has(item.paragraphIndex));
-    const result: ContractReviewResult = { ...parsed, paragraphs, suggestions, sources: parsed.sources.filter((source) => isAllowedSource(source.url)).slice(0, 12), caveats: parsed.caveats.slice(0, 10), model: process.env.OPENAI_MODEL ?? "gpt-5-mini" };
-    return Response.json({ review: result });
+    const reviewedCount = extension === "docx" ? reviewParagraphs.length : Math.min(paragraphs.length, REVIEW_PARAGRAPH_LIMIT);
+    const scopeCaveat = paragraphs.length > reviewedCount ? [`Only the opening ${reviewedCount} of ${paragraphs.length} paragraphs were analysed. Later clauses have not been reviewed.`] : [];
+    const result: ContractReviewResult = { ...parsed, paragraphs, suggestions, sources: parsed.sources.filter((source) => isAllowedSource(source.url)).slice(0, 12), caveats: [...scopeCaveat, ...parsed.caveats].slice(0, 10), model: process.env.OPENAI_MODEL ?? "gpt-5-mini" };
+    await writeCachedReview({ contractKey: key, regulationId: body.regulationId, fingerprint, reviewedParagraphs: reviewedCount, totalParagraphs: paragraphs.length, review: result });
+    return Response.json({ review: result, cached: false, reviewedParagraphs: reviewedCount, totalParagraphs: paragraphs.length });
   } catch (error) {
-    console.error("Contract regulatory review failed", error);
+    console.error("Contract regulatory review failed", error, (error as { cause?: unknown } | null)?.cause);
     return Response.json({ error: error instanceof Error ? error.message : "The contract review failed." }, { status: 502 });
   }
 }
