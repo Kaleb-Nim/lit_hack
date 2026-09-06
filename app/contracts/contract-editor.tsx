@@ -137,7 +137,7 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
         ? <>
             <span className={`gen-state${reviewing ? " generating" : ""}`}><i />{reviewing ? "Generating" : "Generated"} · {regulation.shortName}</span>
             <span className="chargeable">
-              <span><small>Chargeable</small><strong>{formatClock(session.elapsedSeconds)}</strong></span>
+              <span><small>Time taken</small><strong>{formatClock(session.elapsedSeconds)}</strong></span>
               <button onClick={session.running ? session.pause : session.start} disabled={!session.startedAt}>{session.running ? "Pause" : "Resume"}</button>
             </span>
             <button className="btn btn--outline-light" onClick={runReview} disabled={reviewing || state === "loading"}>{reviewing ? <LoaderCircle className="spin" size={14} /> : null}Amendments</button>
@@ -187,7 +187,7 @@ export function ContractEditor({ contractKey, regulationId }: { contractKey: str
         </footer>
       </section>
       {!review && <aside className="review-timer-rail" aria-label="Review time and approval">
-        <div className="review-timer-rail__label"><span className="eyebrow">Matter time</span><strong>Chargeable review</strong><p>Tracks the time you spend reading, editing and approving this working copy.</p></div>
+        <div className="review-timer-rail__label"><span className="eyebrow">Matter time</span><strong>Time taken</strong><p>Tracks the time you spend reading, editing and approving this working copy.</p></div>
         <ReviewSessionTimer elapsedSeconds={session.elapsedSeconds} running={session.running} startedAt={session.startedAt} approvedAt={session.approvedAt} accepted={session.accepted.size} skipped={session.skipped.size} manualEdits={session.manualEdits.size} totalSuggestions={0} onPause={session.pause} onResume={session.start} onApprove={session.approve} />
       </aside>}
     </main>

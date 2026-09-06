@@ -18,7 +18,7 @@ type Props = {
   onUpdateAccepted: (suggestion: ContractEditSuggestion) => void;
   /**
    * The AI drafting assessment above the redline. The .docx workbench hides
-   * it — the chargeable timer occupies that strip instead — while the PDF
+   * it — the timer occupies that strip instead — while the PDF
    * workbench, which has no such strip, still shows it.
    */
   showAssessment?: boolean;

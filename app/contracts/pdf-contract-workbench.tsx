@@ -84,7 +84,7 @@ export function PdfContractWorkbench({ contractKey, regulationId }: { contractKe
         {review && <div className="pdf-conversion__scroll"><ContractClauseReview review={review} onAccept={applySuggestion} onReject={rejectSuggestion} onUpdateAccepted={applySuggestion} accepted={session.accepted} skipped={session.skipped} /></div>}
       </section>
       <aside className="review-timer-rail" aria-label="Review time and approval">
-        <div className="review-timer-rail__label"><span className="eyebrow">Matter time</span><strong>Chargeable review</strong><p>Tracks the time you spend comparing the PDF, editing and approving the working copy.</p></div>
+        <div className="review-timer-rail__label"><span className="eyebrow">Matter time</span><strong>Time taken</strong><p>Tracks the time you spend comparing the PDF, editing and approving the working copy.</p></div>
         {review && <ReviewLimitations caveats={review.caveats} />}
         <ReviewSessionTimer elapsedSeconds={session.elapsedSeconds} running={session.running} startedAt={session.startedAt} approvedAt={session.approvedAt} accepted={session.accepted.size} skipped={session.skipped.size} manualEdits={session.manualEdits.size} totalSuggestions={review?.suggestions.length ?? 0} onPause={session.pause} onResume={session.start} onApprove={session.approve} />
       </aside>

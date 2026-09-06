@@ -27,7 +27,7 @@ type Props = {
 };
 
 /**
- * The chargeable-review timer as a horizontal strip across the top of the
+ * The review timer as a horizontal strip across the top of the
  * clause review, rather than the fixed right-hand rail. Same session state
  * and the same pause/resume/approve semantics as `ReviewSessionTimer`; it
  * only trades the stacked card layout for one that sits above the redline.
@@ -38,7 +38,7 @@ export function ReviewSessionBar(props: Props) {
   const state = props.approvedAt ? "Approved" : !props.startedAt ? "Idle" : props.running ? "Recording" : "Paused";
 
   return <div className={`review-session-bar${props.approvedAt ? " approved" : ""}`} aria-live="polite">
-    <span className="review-session-bar__label"><Clock3 size={14} />Chargeable review</span>
+    <span className="review-session-bar__label"><Clock3 size={14} />Time taken</span>
     <strong className="review-session-bar__time">{formatTime(props.elapsedSeconds)}</strong>
     <i className={props.running ? "running" : ""}>{state}</i>
 
