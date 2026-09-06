@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { sanitizeDraft, type LawChangeDraft } from "@/lib/regulation-intake";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const allowedDomains = ["sso.agc.gov.sg", "mom.gov.sg", "pdpc.gov.sg", "mddi.gov.sg", "parliament.gov.sg"];
@@ -70,6 +71,10 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const message = (data.error as { message?: string } | undefined)?.message;
       throw new Error(message || `OpenAI returned ${response.status}`);
+    }
+    if (data.status === "incomplete") {
+      const reason = (data.incomplete_details as { reason?: string } | undefined)?.reason;
+      throw new Error(reason === "max_output_tokens" ? "The research response was too long to finish. Narrow the description or attach a shorter source." : `The research stopped before finishing (${reason ?? "unknown reason"}).`);
     }
     const text = outputText(data);
     if (!text) throw new Error("OpenAI returned no research summary.");

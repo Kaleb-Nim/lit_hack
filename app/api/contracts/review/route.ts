@@ -4,6 +4,7 @@ import { isRegulationId, regulationById } from "@/lib/regulatory-workspace";
 import type { ContractParagraph, ContractReviewResult } from "@/lib/contract-review-model";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const allowedDomains = ["sso.agc.gov.sg", "mom.gov.sg", "pdpc.gov.sg", "mddi.gov.sg", "parliament.gov.sg"];
@@ -73,11 +74,15 @@ export async function POST(request: Request) {
     const aiResponse = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" }, body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-5-mini", store: false,
       instructions: "You are a cautious Singapore contract-review assistant supporting a qualified lawyer. Produce drafting suggestions, not a final legal opinion. Use only official Singapore government sources.",
-      input: [{ role: "user", content }], tools: [{ type: "web_search", filters: { allowed_domains: allowedDomains }, search_context_size: "high" }], tool_choice: "auto", max_tool_calls: 8, max_output_tokens: 16000,
+      input: [{ role: "user", content }], tools: [{ type: "web_search", filters: { allowed_domains: allowedDomains }, search_context_size: "high" }], tool_choice: "auto", max_tool_calls: 8, max_output_tokens: 48000,
       text: { format: { type: "json_schema", name: "contract_regulatory_review", strict: true, schema } },
     }) });
     const raw = await aiResponse.json() as Record<string, unknown>;
     if (!aiResponse.ok) throw new Error((raw.error as { message?: string } | undefined)?.message ?? `OpenAI returned ${aiResponse.status}`);
+    if (raw.status === "incomplete") {
+      const reason = (raw.incomplete_details as { reason?: string } | undefined)?.reason;
+      throw new Error(reason === "max_output_tokens" ? "This contract is too long to review in one pass. Review a shorter document or split it into sections." : `The review stopped before finishing (${reason ?? "unknown reason"}).`);
+    }
     const parsed = JSON.parse(outputText(raw)) as Omit<ContractReviewResult, "model">;
     const paragraphs = extension === "docx" ? knownParagraphs : parsed.paragraphs.map((paragraph, index) => ({ index, text: String(paragraph.text ?? "") })).filter((paragraph) => paragraph.text.trim()).slice(0, 1200);
     const validIndexes = new Set(paragraphs.map((paragraph) => paragraph.index));
