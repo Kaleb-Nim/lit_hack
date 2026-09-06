@@ -12,7 +12,9 @@ const cachePrefix = "Regulations/review-cache/";
 // or meaning of a stored review changes, otherwise old entries are served as if
 // they were produced by the new pipeline. Entries written before versioning are
 // treated as v1.
-const CACHE_VERSION = "v1";
+// v2: prod moved from gpt-5-mini to gpt-5.6-sol, so v1 entries describe a
+// different model than the one now named in each review.
+const CACHE_VERSION = "v2";
 
 export type CachedContractReview = {
   contractKey: string;
