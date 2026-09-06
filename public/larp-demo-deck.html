@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>L.A.R.P. Demo Deck</title>
+  <style>
+    :root{--navy:#152033;--gold:#b18a42;--paper:#f7f4ee;--white:#fff;--ink:#1b2230;--muted:#69717b;--line:#d8d2c7;--red:#982f2b;--green:#2f775f;--soft:#eee9df;--serif:Georgia,"Times New Roman",serif;--sans:Arial,Helvetica,sans-serif}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#e7e3db;color:var(--ink);font-family:var(--sans)}
+    body{display:grid;place-items:center;padding:28px}
+    button{font:inherit}
+    .deck{width:min(1280px,calc(100vw - 56px));aspect-ratio:16/9;position:relative;background:var(--white);box-shadow:0 22px 60px rgba(21,32,51,.18);overflow:hidden}
+    .slide{position:absolute;inset:0;display:none;padding:6.5% 6%;background:var(--white)}
+    .slide.active{display:block}
+    .slide::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--gold)}
+    .slide-no{position:absolute;right:5.8%;top:5.4%;color:var(--gold);font:700 clamp(10px,1vw,14px) var(--sans);letter-spacing:.12em}
+    h1,h2,h3,p{margin:0}
+    h1,h2,h3{font-family:var(--serif);color:var(--navy)}
+    h1{font-size:clamp(48px,7vw,96px);line-height:.95}
+    h2{font-size:clamp(28px,3.4vw,50px);line-height:1.08}
+    h3{font-size:clamp(16px,1.7vw,24px);line-height:1.2}
+    p{font-size:clamp(13px,1.35vw,20px);line-height:1.5;color:var(--muted)}
+    .kicker{display:block;margin-bottom:18px;color:var(--gold);font-weight:700;font-size:clamp(10px,1vw,14px);letter-spacing:.16em;text-transform:uppercase}
+    .rule{height:1px;background:var(--line);margin:24px 0 30px}
+    .footer{position:absolute;left:6%;bottom:4%;font-size:clamp(8px,.7vw,11px);color:#8b8f93}
+    .cover{display:grid;grid-template-columns:1.3fr .7fr;align-items:center;padding-top:8%}
+    .cover::after{content:"";position:absolute;right:0;top:0;width:25%;height:100%;background:linear-gradient(135deg,transparent 0 47%,rgba(177,138,66,.08) 47% 100%);pointer-events:none}
+    .cover .tagline{max-width:780px;margin-top:34px;color:var(--navy);font:400 clamp(22px,2.5vw,38px)/1.3 var(--serif)}
+    .cover .side{align-self:stretch;border-left:1px solid var(--line);display:flex;align-items:flex-end;padding:0 0 6% 42px;color:var(--gold);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .split{display:grid;grid-template-columns:1fr 1px 1fr;gap:4%;align-items:start}
+    .divider{width:1px;height:230px;background:var(--line)}
+    .question-label{font-size:clamp(11px,1vw,15px);color:var(--muted);margin-bottom:18px}
+    .question{font:700 clamp(26px,3vw,46px)/1.1 var(--serif);color:var(--navy)}
+    .question.red{color:var(--red)}
+    .manual-path{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:54px;position:relative}
+    .manual-path::before{content:"";position:absolute;left:7%;right:7%;top:16px;border-top:1px solid var(--line)}
+    .manual-path div{position:relative;padding-top:38px;font-size:clamp(11px,1vw,15px);font-weight:700;color:var(--navy)}
+    .manual-path b{position:absolute;top:0;left:0;width:32px;height:32px;display:grid;place-items:center;background:var(--white);border:1px solid var(--gold);color:var(--gold);border-radius:50%}
+    .warning{margin-top:38px;padding:15px 20px;border-left:5px solid var(--red);background:#f8ecea;color:var(--red);font-weight:700;text-align:center;font-size:clamp(11px,1.05vw,16px)}
+    .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:2.2%;margin-top:8%}
+    .flow-step{position:relative;border-top:3px solid var(--gold);padding-top:18px}
+    .flow-step:not(:last-child)::after{content:"→";position:absolute;right:-12%;top:-18px;color:#b3aea4;font-size:25px}
+    .flow-step b{display:block;margin-bottom:15px;color:var(--gold);font:700 clamp(22px,2.3vw,34px) var(--serif)}
+    .flow-step strong{display:block;margin-bottom:10px;color:var(--navy);font-size:clamp(11px,1.1vw,16px);letter-spacing:.08em}
+    .flow-step span{color:var(--muted);font-size:clamp(10px,.95vw,14px);line-height:1.45}
+    .source-lock{position:absolute;left:6%;right:6%;bottom:9%;display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--paper);border:1px solid var(--line)}
+    .source-lock strong{color:var(--navy);font:700 clamp(14px,1.6vw,23px) var(--serif)}
+    .source-lock span{max-width:34%;text-align:right;color:var(--muted);font-size:clamp(10px,.9vw,14px)}
+    .cases{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:4%}
+    .case{min-height:230px;padding:30px;border:1px solid var(--line);border-top:5px solid var(--gold);background:var(--white)}
+    .case h3{font-size:clamp(21px,2.2vw,32px);margin:10px 0 20px}
+    .case ul{margin:0;padding-left:19px;color:var(--muted);font-size:clamp(11px,1.05vw,16px);line-height:1.8}
+    .case.current{background:var(--navy);border-color:var(--navy);border-top-color:var(--gold)}
+    .case.current h3{color:var(--white)}
+    .case.current ul{color:#c8cfd7}
+    .demo-route{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:42px}
+    .demo-route div{display:flex;gap:10px;align-items:flex-start;color:var(--navy);font-size:clamp(10px,.95vw,14px);font-weight:700}
+    .demo-route b{flex:0 0 28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--gold);color:var(--white)}
+    .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:54px 70px;margin-top:6%}
+    .control-item{display:grid;grid-template-columns:48px 1fr;gap:16px;align-items:start}
+    .control-item b{color:var(--gold);font:700 clamp(22px,2vw,30px) var(--serif)}
+    .control-item h3{margin-bottom:8px}
+    .control-item p{font-size:clamp(11px,1vw,15px)}
+    .trust{position:absolute;left:6%;right:6%;bottom:9%;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+    .trust div{padding:16px 18px;background:var(--paper)}
+    .trust small{display:block;color:var(--gold);font-weight:700;letter-spacing:.1em;margin-bottom:5px}
+    .trust strong{color:var(--navy);font-size:clamp(10px,1vw,15px)}
+    .stack{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:4.5%;align-items:start}
+    .stack-col{position:relative;padding-top:18px;border-top:4px solid var(--gold)}
+    .stack-col:not(:last-child)::after{content:"→";position:absolute;right:-17px;top:94px;color:#a8a297;font-size:22px}
+    .stack-col h3{font:700 clamp(13px,1.3vw,19px) var(--sans);letter-spacing:.06em;margin-bottom:18px}
+    .stack-col span{display:block;min-height:55px;padding:12px 0;border-bottom:1px solid var(--line);color:var(--muted);font-size:clamp(10px,1vw,15px);line-height:1.35}
+    .stack-col span:first-of-type{color:var(--navy);font-weight:700}
+    .trust-strip{margin-top:42px;padding:17px;border:1px solid var(--gold);color:var(--navy);font-size:clamp(10px,1vw,15px);font-weight:700;text-align:center;word-spacing:12px}
+    .roadmap{display:grid;grid-template-columns:1fr 1fr;gap:42px 76px;margin-top:6%}
+    .roadmap-item{border-left:4px solid var(--gold);padding-left:20px}
+    .roadmap-item h3{margin-bottom:9px}
+    .roadmap-item p{font-size:clamp(11px,1vw,15px)}
+    .closing{position:absolute;left:6%;right:17%;bottom:10%;color:var(--navy);font:700 clamp(22px,2.5vw,38px)/1.25 var(--serif)}
+    .nav{position:fixed;right:24px;bottom:20px;display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,.95);border:1px solid var(--line);box-shadow:0 5px 20px rgba(21,32,51,.12)}
+    .nav button{width:42px;height:36px;border:1px solid var(--line);background:var(--white);color:var(--navy);cursor:pointer;font-size:18px}
+    .nav button:hover{border-color:var(--gold)}
+    .counter{min-width:62px;text-align:center;color:var(--muted);font-size:12px}
+    .progress{position:fixed;left:0;bottom:0;height:4px;background:var(--gold);transition:width .2s ease}
+    @media(max-width:760px){body{padding:0}.deck{width:100vw}.slide{padding:7% 5%}.nav{right:8px;bottom:8px}.footer{display:none}.flow,.stack{gap:1.5%}.flow-step:not(:last-child)::after,.stack-col:not(:last-child)::after{display:none}.source-lock{left:5%;right:5%}}
+    @media print{body{display:block;padding:0;background:#fff}.deck{width:auto;aspect-ratio:auto;box-shadow:none;overflow:visible}.slide{position:relative;display:block!important;width:13.333in;height:7.5in;page-break-after:always}.nav,.progress{display:none}}
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide cover active" aria-label="Slide 1">
+      <div>
+        <span class="kicker">Localised Amendment Resilience Platform</span>
+        <h1>L.A.R.P.</h1>
+        <p class="tagline">Regulatory change, traced to the clauses and files that need attention</p>
+      </div>
+      <div class="side">Singapore LegalTech<br>SMU LIT Hackathon 2026</div>
+      <span class="slide-no">01</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 2">
+      <span class="slide-no">02</span>
+      <h2>Regulatory alerts stop too early</h2><div class="rule"></div>
+      <div class="split">
+        <div><p class="question-label">Existing horizon scanners answer one question</p><div class="question">What changed in the law?</div></div>
+        <div class="divider"></div>
+        <div><p class="question-label">Lawyers still have to answer the operational question</p><div class="question red">Which confidential files now need review?</div></div>
+      </div>
+      <div class="manual-path"><div><b>1</b>Read the alert</div><div><b>2</b>Search document stores</div><div><b>3</b>Compare clauses manually</div><div><b>4</b>Draft and validate changes</div></div>
+      <div class="warning">Manual search and clause review consume billable time and can miss affected files</div>
+      <span class="footer">L.A.R.P. · Demo deck</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 3">
+      <span class="slide-no">03</span>
+      <h2>One workflow from source to working copy</h2><div class="rule"></div>
+      <div class="flow">
+        <div class="flow-step"><b>01</b><strong>MONITOR</strong><span>Official Acts, Bills and consultations</span></div>
+        <div class="flow-step"><b>02</b><strong>COMPARE</strong><span>Past and present legal text</span></div>
+        <div class="flow-step"><b>03</b><strong>TRACE</strong><span>Affected contract families and clauses</span></div>
+        <div class="flow-step"><b>04</b><strong>REVIEW</strong><span>AI suggestions with legal sources</span></div>
+        <div class="flow-step"><b>05</b><strong>DOWNLOAD</strong><span>Approved Word working copy</span></div>
+      </div>
+      <div class="source-lock"><strong>The source contract stays untouched in Cloudflare R2</strong><span>Only the downloaded working copy contains approved edits</span></div>
+      <span class="footer">L.A.R.P. · Demo deck</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 4">
+      <span class="slide-no">04</span>
+      <h2>Demo route: PDPA and Workplace Fairness</h2><div class="rule"></div>
+      <div class="cases">
+        <div class="case current"><span class="kicker">PDPA</span><h3>Current compliance review</h3><ul><li>Historical comparison and commenced duties</li><li>Priority screening for privacy clauses</li><li>Clause-level diff review</li></ul></div>
+        <div class="case"><span class="kicker">Workplace Fairness Act</span><h3>Future readiness review</h3><ul><li>Passed but uncommenced</li><li>Employment document screening</li><li>Preparation without false breach findings</li></ul></div>
+      </div>
+      <div class="demo-route"><div><b>1</b>Pick a law</div><div><b>2</b>Read the summary and timeline</div><div><b>3</b>Filter affected files</div><div><b>4</b>Trace the dependency</div><div><b>5</b>Accept or reject edits</div></div>
+      <span class="footer">L.A.R.P. · Demo deck</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 5">
+      <span class="slide-no">05</span>
+      <h2>Evidence and human control</h2><div class="rule"></div>
+      <div class="controls-grid">
+        <div class="control-item"><b>01</b><div><h3>Official evidence</h3><p>Singapore Statutes Online and approved government sources ground the legal position.</p></div></div>
+        <div class="control-item"><b>02</b><div><h3>AI draft</h3><p>The model proposes summaries and clause changes. It does not make the final legal decision.</p></div></div>
+        <div class="control-item"><b style="color:var(--green)">03</b><div><h3>Cached review</h3><p>Stored results avoid repeat processing and preserve the basis for each priority.</p></div></div>
+        <div class="control-item"><b style="color:var(--green)">04</b><div><h3>Lawyer approval</h3><p>Counsel accepts, rejects or edits every change before downloading a working copy.</p></div></div>
+      </div>
+      <div class="trust"><div><small>SERVER</small><strong>Credentials remain server-side</strong></div><div><small>STORAGE</small><strong>R2 originals remain read-only</strong></div><div><small>OUTPUT</small><strong>Approved edits download as a copy</strong></div></div>
+      <span class="footer">L.A.R.P. · Demo deck</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 6">
+      <span class="slide-no">06</span>
+      <h2>Technology stack</h2><div class="rule"></div>
+      <div class="stack">
+        <div class="stack-col"><h3>LEGAL SOURCES</h3><span>Singapore Statutes Online</span><span>MOM and PDPC</span><span>Legal news</span></div>
+        <div class="stack-col"><h3>WEB APPLICATION</h3><span>Next.js 16</span><span>React 19</span><span>Tailwind CSS 4</span></div>
+        <div class="stack-col"><h3>AI ANALYSIS</h3><span>OpenAI Responses API</span><span>Grounded clause review</span><span>Cached summaries</span></div>
+        <div class="stack-col"><h3>DOCUMENT ENGINE</h3><span>Cloudflare R2</span><span>JSZip and docx</span><span>Browser working copy</span></div>
+        <div class="stack-col"><h3>LAWYER WORKFLOW</h3><span>Impact timeline</span><span>Dependency graph</span><span>Diff review and approval</span></div>
+      </div>
+      <div class="trust-strip">SERVER-ONLY SECRETS · READ-ONLY R2 ORIGINALS · HUMAN APPROVAL · DOWNLOADABLE WORKING COPY</div>
+      <span class="footer">L.A.R.P. · Demo deck</span>
+    </section>
+
+    <section class="slide" aria-label="Slide 7">
+      <span class="slide-no">07</span>
+      <h2>What comes next</h2><div class="rule"></div>
+      <div class="roadmap">
+        <div class="roadmap-item"><h3>Microsoft Word Track Changes</h3><p>Accepted suggestions appear as native reviewable edits in active agreements.</p></div>
+        <div class="roadmap-item"><h3>Billable review timer</h3><p>Review time is recorded by document and client matter.</p></div>
+        <div class="roadmap-item"><h3>Earlier Bill monitoring</h3><p>Legal teams can prepare documents before commencement dates arrive.</p></div>
+        <div class="roadmap-item"><h3>Law firm pilots</h3><p>Real matters will test relevance, drafting quality and review speed.</p></div>
+      </div>
+      <p class="closing">Regulatory monitoring becomes a review queue lawyers can act on</p>
+      <span class="footer">L.A.R.P. · SMU LIT Hackathon 2026</span>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="Slide navigation">
+    <button type="button" id="prev" aria-label="Previous slide">←</button>
+    <span class="counter" id="counter">1 / 7</span>
+    <button type="button" id="next" aria-label="Next slide">→</button>
+  </nav>
+  <div class="progress" id="progress"></div>
+  <script>
+    const slides=[...document.querySelectorAll('.slide')];
+    const counter=document.getElementById('counter');
+    const progress=document.getElementById('progress');
+    let index=0;
+    function show(next){index=Math.max(0,Math.min(slides.length-1,next));slides.forEach((slide,i)=>slide.classList.toggle('active',i===index));counter.textContent=`${index+1} / ${slides.length}`;progress.style.width=`${((index+1)/slides.length)*100}%`;location.hash=`slide-${index+1}`}
+    document.getElementById('prev').addEventListener('click',()=>show(index-1));
+    document.getElementById('next').addEventListener('click',()=>show(index+1));
+    addEventListener('keydown',event=>{if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();show(index+1)}if(['ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();show(index-1)}if(event.key==='Home')show(0);if(event.key==='End')show(slides.length-1)});
+    const initial=Number(location.hash.replace('#slide-',''))-1;if(Number.isFinite(initial)&&initial>=0)index=initial;show(index);
+  </script>
+</body>
+</html>
