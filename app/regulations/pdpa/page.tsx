@@ -11,6 +11,8 @@ import type { DocBlock, DocModel } from "@/lib/docx-model";
 import { DownloadButton } from "@/app/download-button";
 import { SummaryDocumentFilter } from "@/app/components/summary-document-filter";
 import { LegislativeLifecycle } from "@/app/components/legislative-lifecycle";
+import { RegulatorySourceBriefing } from "@/app/components/regulatory-source-briefing";
+import { REGULATORY_JOURNEYS } from "@/lib/regulatory-journey";
 import { regulationById } from "@/lib/regulatory-workspace";
 import "../../summary.css";
 
@@ -134,6 +136,7 @@ export default function SummaryPage() {
             </section>
 
             <LegislativeLifecycle events={pdpaWorkspace.lifecycle} />
+            <RegulatorySourceBriefing journey={REGULATORY_JOURNEYS.PDPA2012} />
 
             {/* Primary call to action */}
             <div className="cta">

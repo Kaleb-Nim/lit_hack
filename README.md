@@ -53,7 +53,7 @@ vercel deploy --prod
 
 ## Singapore regulation registry
 
-The application keeps official legislation separate from editable company analysis:
+The application keeps official legislation separate from editable client analysis:
 
 - `GET /api/regulations` returns the cached Singapore legislation catalogue, version history, lifecycle events, and internal overlays. It accepts `query`, `kind`, `status`, `page`, and `limit` filters; `limit` is capped at 500.
 - `PATCH /api/regulations` writes only internal notes, tracking state, and tags to `Regulations/overlays.json` in R2. It never changes official legislation.

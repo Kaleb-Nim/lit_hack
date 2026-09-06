@@ -6,6 +6,8 @@ type LifecycleEvent = {
   title: string;
   description: string;
   sourceUrl: string;
+  sourceLabel?: string;
+  sourceKind?: "Official" | "News";
   current?: boolean;
 };
 
@@ -26,7 +28,9 @@ export function LegislativeLifecycle({ events }: { events: LifecycleEvent[] }) {
               <strong>{event.title}</strong>
               <p>{event.description}</p>
             </div>
-            <a href={event.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official source for ${event.title}`} title="Open official source">
+            <a href={event.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open source for ${event.title}`}>
+              <span>{event.sourceKind ?? "Official"}</span>
+              <strong>{event.sourceLabel ?? "Open source"}</strong>
               <ExternalLink size={15} aria-hidden="true" />
             </a>
           </li>
